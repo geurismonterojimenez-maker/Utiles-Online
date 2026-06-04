@@ -1,64 +1,20 @@
-# UtilesOnline
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-Web de herramientas online creada con Next.js App Router, React, TypeScript y Tailwind CSS.
+# Run and deploy your AI Studio app
 
-## Comandos
+This contains everything you need to run your app locally.
 
-```bash
-npm install
-npm run dev
-npm run lint
-npm run build
-npm run start
-```
+View your app in AI Studio: https://ai.studio/apps/6dd39e89-0c01-40dd-94e4-8cb07e0b08e6
 
-Para validar antes de subir:
+## Run Locally
 
-```bash
-npm run predeploy
-```
+**Prerequisites:**  Node.js
 
-## Produccion
 
-Usa Node.js 20 o superior.
-
-Variables base:
-
-```bash
-cp .env.production.example .env.local
-```
-
-Configura:
-
-```env
-NEXT_PUBLIC_SITE_URL=https://tudominio.com
-NEXT_PUBLIC_ADSENSE_ENABLED=false
-NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-0000000000000000
-GROQ_API_KEY=
-```
-
-## Rutas principales
-
-- `/`: inicio.
-- `/[slug]`: herramienta individual.
-- `/categorias/[category]`: categoria.
-- `/blog`: articulos.
-- `/guias`: guias.
-- `/sitemap.xml`: sitemap.
-- `/robots.txt`: robots.
-
-## Hostinger y AdSense
-
-La guia completa esta en:
-
-```txt
-docs/GUIA_HOSTINGER_ADSENSE.md
-```
-
-Resumen:
-
-- Desplegar como Node.js Web App, no como HTML estatico.
-- Build command: `npm install && npm run build`.
-- Start command: `npm run start`.
-- Mantener `NEXT_PUBLIC_ADSENSE_ENABLED=false` hasta tener el sitio revisado o los IDs correctos.
-- Crear `public/ads.txt` solo cuando tengas tu publisher ID real.
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

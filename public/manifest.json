@@ -1,0 +1,36 @@
+{
+  "name": "Tu Negocio RD",
+  "short_name": "Tu Negocio RD",
+  "description": "Calculadoras fiscales, laborales y financieras para Republica Dominicana.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#0F766E",
+  "lang": "es-DO",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "finance", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Calculadora ITBIS",
+      "short_name": "ITBIS",
+      "url": "/herramientas/calculadora-itbis",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Salario Neto",
+      "short_name": "Salario",
+      "url": "/herramientas/calculadora-salario-neto",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}
