@@ -1,0 +1,574 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+html,
+body,
+#root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+#outer-adsense-grid-wrapper,
+#center-content-ad-hybrid,
+#main-workspace-balance,
+#main-workspace-balance > div {
+  min-width: 0;
+}
+
+#main-workspace-balance {
+  scrollbar-gutter: stable;
+}
+
+#main-workspace-balance h1,
+#main-workspace-balance h2,
+#main-workspace-balance h3,
+#main-workspace-balance p,
+#main-workspace-balance span,
+#main-workspace-balance button,
+#main-workspace-balance label {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+#main-workspace-balance .font-mono,
+#main-workspace-balance table,
+#main-workspace-balance td,
+#main-workspace-balance th {
+  overflow-wrap: normal;
+}
+
+#main-workspace-balance input,
+#main-workspace-balance select,
+#main-workspace-balance textarea {
+  min-width: 0;
+}
+
+#main-workspace-balance table {
+  table-layout: auto;
+}
+
+#main-workspace-balance [class*="rounded-2xl"],
+#main-workspace-balance [class*="rounded-xl"] {
+  max-width: 100%;
+}
+
+@media (max-width: 1535px) {
+  #main-workspace-balance .lg\:grid-cols-12 {
+    row-gap: 1.5rem;
+  }
+}
+
+.calculator-results-panel {
+  container-type: inline-size;
+}
+
+.calculator-results-panel,
+[data-print-kind="report-document"] {
+  max-width: 100%;
+}
+
+.calculator-results-panel .font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.calculator-results-panel p[class*="break-words"].font-mono {
+  display: block;
+  font-size: clamp(1.25rem, 4.6cqw, 1.875rem) !important;
+  line-height: 1.08;
+  max-width: 100%;
+}
+
+.calculator-results-panel span[class*="break-words"].font-mono {
+  max-width: 100%;
+}
+
+.calculator-results-panel .flex.justify-between {
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.calculator-results-panel .flex.justify-between > span:first-child {
+  min-width: 0;
+}
+
+.calculator-results-panel .flex.justify-between > span:last-child {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.calculator-results-panel .grid.grid-cols-2 .font-mono,
+.calculator-results-panel .grid.sm\:grid-cols-2 .font-mono,
+.calculator-results-panel .grid.sm\:grid-cols-3 .font-mono {
+  max-width: 100%;
+}
+
+[data-print-kind="report-document"] {
+  container-type: inline-size;
+}
+
+[data-print-kind="report-document"] .font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+[data-print-kind="report-document"].font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+[data-print-kind="report-document"] .flex.justify-between {
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+[data-print-kind="report-document"] .flex.justify-between > span:first-child,
+[data-print-kind="report-document"] .flex.justify-between > :first-child {
+  min-width: 0;
+}
+
+[data-print-kind="report-document"] .flex.justify-between > span:last-child,
+[data-print-kind="report-document"] .flex.justify-between > :last-child {
+  flex-shrink: 0;
+  text-align: right;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+[data-print-kind="report-document"] table .font-mono,
+[data-print-kind="report-document"] td,
+[data-print-kind="report-document"] th {
+  white-space: nowrap;
+}
+
+#centro-laboral-root {
+  container-type: inline-size;
+}
+
+#centro-laboral-root .font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+#labor-stats-grid > div {
+  min-width: 0;
+}
+
+#labor-stats-grid .font-mono {
+  display: block;
+  font-size: clamp(1rem, 1.55cqw, 1.25rem) !important;
+  line-height: 1.12;
+}
+
+#debt-dashboard-stats > div {
+  min-width: 0;
+}
+
+#debt-dashboard-stats .font-mono {
+  display: block;
+  font-size: clamp(1.125rem, 1.8cqw, 1.5rem) !important;
+  line-height: 1.12;
+  white-space: nowrap;
+}
+
+#debts-interactive-workspace,
+#labor-database-manager {
+  min-width: 0;
+}
+
+#debts-interactive-workspace > *,
+#labor-database-manager > * {
+  min-width: 0;
+}
+
+#centro-laboral-root table .font-mono,
+#centro-laboral-root td.font-mono,
+#centro-laboral-root strong.font-mono {
+  white-space: nowrap;
+}
+
+@container (max-width: 520px) {
+  .calculator-results-panel .grid.sm\:grid-cols-2,
+  .calculator-results-panel .grid.sm\:grid-cols-3 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .calculator-results-panel p[class*="break-words"].font-mono {
+    font-size: clamp(1.375rem, 7cqw, 1.875rem) !important;
+  }
+
+  [data-print-kind="report-document"] .text-3xl,
+  [data-print-kind="report-document"] .md\:text-4xl {
+    font-size: clamp(1.5rem, 9cqw, 2.25rem) !important;
+    line-height: 1.08;
+  }
+
+  [data-print-kind="report-document"] .flex.justify-between {
+    flex-wrap: wrap;
+  }
+}
+
+/* HIGH-PRECISION CSS FOR BEAUTIFUL PDF DOWNLOAD & PRINT SHEET DESIGNS */
+@media print {
+  @page {
+    margin: 1.5cm;
+    size: letter portrait;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  #labor-legal-compiled-sheet-preview,
+  #labor-legal-compiled-sheet-preview *,
+  #timbrada-report-print-preview,
+  #timbrada-report-print-preview *,
+  #print-sheet-segment,
+  #print-sheet-segment *,
+  #payslip-print-block,
+  #payslip-print-block *,
+  #laboral-calculator-print-preview,
+  #laboral-calculator-print-preview *,
+  #finanzas-calculator-print-preview,
+  #finanzas-calculator-print-preview *,
+  #empresariales-math-print-preview,
+  #empresariales-math-print-preview *,
+  #financial-center-print-preview,
+  #financial-center-print-preview * {
+    visibility: visible !important;
+  }
+
+  #labor-legal-compiled-sheet-preview,
+  #timbrada-report-print-preview,
+  #print-sheet-segment,
+  #payslip-print-block,
+  #laboral-calculator-print-preview,
+  #finanzas-calculator-print-preview,
+  #empresariales-math-print-preview,
+  #financial-center-print-preview {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0.8in !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    z-index: 9999999 !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+    font-size: 10.5pt !important;
+    line-height: 1.45 !important;
+  }
+
+  #labor-legal-compiled-sheet-preview [class*="max-h-"],
+  #timbrada-report-print-preview [class*="max-h-"],
+  #print-sheet-segment [class*="max-h-"],
+  #payslip-print-block [class*="max-h-"],
+  #laboral-calculator-print-preview [class*="max-h-"],
+  #finanzas-calculator-print-preview [class*="max-h-"],
+  #empresariales-math-print-preview [class*="max-h-"],
+  #financial-center-print-preview [class*="max-h-"],
+  #labor-legal-compiled-sheet-preview [class*="overflow-y-auto"],
+  #timbrada-report-print-preview [class*="overflow-y-auto"],
+  #print-sheet-segment [class*="overflow-y-auto"],
+  #payslip-print-block [class*="overflow-y-auto"],
+  #laboral-calculator-print-preview [class*="overflow-y-auto"],
+  #finanzas-calculator-print-preview [class*="overflow-y-auto"],
+  #empresariales-math-print-preview [class*="overflow-y-auto"],
+  #financial-center-print-preview [class*="overflow-y-auto"] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  table {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    border-collapse: collapse !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  tr,
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  button,
+  select,
+  input,
+  textarea,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  a {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+/* Precise 3-Column AdSense Responsive Layout Framework */
+.site-shell {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.content-shell {
+  width: 100%;
+  min-width: 0;
+}
+
+.desktop-ad {
+  display: none;
+}
+
+.responsive-flow-ad {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  contain: layout paint;
+  overflow: hidden;
+}
+
+.nav-ad-container {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  #center-content-ad-hybrid {
+    border-left-width: 0;
+    border-right-width: 0;
+  }
+
+  #main-workspace-balance table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  #main-workspace-balance th,
+  #main-workspace-balance td {
+    white-space: normal;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav-ad-container {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 1500px) {
+  .responsive-flow-ad {
+    display: none;
+  }
+
+  .site-shell {
+    max-width: 1500px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1040px) 160px;
+    gap: 24px;
+    align-items: start;
+    justify-content: center;
+  }
+
+  .content-shell {
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+
+  .desktop-ad {
+    display: block !important;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+    min-height: 600px;
+    border: 1px dashed #CBD5E1;
+    border-radius: 14px;
+    background: #F8FAFC;
+    position: sticky;
+    top: 96px;
+    contain: layout size;
+    overflow: hidden;
+  }
+}
+
+.adsbygoogle {
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+#main-workspace-balance .adsbygoogle,
+#main-workspace-balance .adsbygoogle iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.desktop-ad .adsbygoogle,
+.desktop-ad .adsbygoogle iframe {
+  width: 160px !important;
+  max-width: 160px !important;
+}
+
+#center-content-ad-hybrid,
+#main-workspace-balance {
+  inline-size: 100%;
+}
+
+@media (min-width: 2200px) {
+  header > div {
+    max-width: 92vw !important;
+  }
+
+  .site-shell {
+    max-width: 92vw;
+    grid-template-columns:
+      minmax(180px, 11vw)
+      minmax(1040px, 1fr)
+      minmax(180px, 11vw);
+    gap: clamp(24px, 2vw, 72px);
+  }
+
+  .content-shell {
+    max-width: none;
+    width: 100%;
+  }
+
+  .desktop-ad {
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+    justify-self: center;
+  }
+}
+
+/* Responsive adjustment for #header-logo-brand (under 640px) */
+#header-logo-brand {
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+#header-logo-brand svg {
+  width: 30.6px !important;
+  height: 30.6px !important;
+}
+
+@media (max-width: 360px) {
+  .site-shell {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  #main-workspace-balance {
+    padding: 0.75rem;
+  }
+
+  #main-workspace-balance h1 {
+    font-size: clamp(1.45rem, 9vw, 2rem) !important;
+    line-height: 1.08;
+  }
+
+  #main-workspace-balance h2,
+  #main-workspace-balance h3 {
+    line-height: 1.14;
+  }
+
+  #main-workspace-balance input {
+    text-overflow: ellipsis;
+  }
+
+  header > div {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  #header-logo-brand {
+    gap: 0.4rem;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  #header-logo-brand span {
+    font-size: 0.875rem !important;
+    line-height: 1;
+  }
+
+  #mobile-menu-toggle-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+@media (max-width: 280px) {
+  #header-logo-brand span {
+    display: none;
+  }
+
+  #header-logo-brand svg {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  #main-workspace-balance {
+    padding: 0.5rem;
+  }
+
+  #main-workspace-balance h1 {
+    font-size: 1.35rem !important;
+  }
+}
+
+@media (min-width: 640px) {
+  #header-logo-brand {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  #header-logo-brand svg {
+    width: 34px !important;
+    height: 34px !important;
+  }
+}
+
+
