@@ -1,6 +1,0 @@
-{
-  "name": "Útiles Online RD",
-  "description": "Tu papelería y tienda de útiles escolares en República Dominicana. Consigue tus cuadernos, mochilas y lápices en un clic o procesa tu lista escolar con nuestro escáner exclusivo de IA.",
-  "requestFramePermissions": ["camera"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
