@@ -255,46 +255,7 @@ async function triggerMidnightPriceSync(forced = false) {
   saveProductsToCache();
 }
 
-// Initial bootstrap trigger
-loadProductsFromCache();
-loadSchoolListsFromCache();
 
-async function initializeState() {
-  console.log('[SISTEMA] Cargando datos iniciales de Firestore...');
-  try {
-    localPriceAlerts = await getPriceAlerts();
-    pendingMatchReviews = await getMatchReviews();
-    cachedSchoolProfiles = await getSchoolProfiles(SCHOOL_PROFILES);
-    cachedSchoolLists = await getSchoolLists(
-      [...SCHOOL_LISTS_DATA].map(list => {
-        const slug = getSchoolSlug(list.schoolName);
-        const hasProfile = cachedSchoolProfiles[slug] !== undefined;
-        return {
-          ...list,
-          city: hasProfile ? (cachedSchoolProfiles[slug].location.includes("Santiago") ? "Santiago de los Caballeros" : "Santo Domingo") : "Santo Domingo",
-          level: list.grade.toLowerCase().includes("secundaria") ? "Secundaria" : list.grade.toLowerCase().includes("kinder") || list.grade.toLowerCase().includes("pre") ? "Preescolar" : "Primaria"
-        };
-      })
-    );
-    const ingestions = await getPendingIngestions();
-    pendingSchools = ingestions.pendingSchools;
-    pendingProductSuggestions = ingestions.pendingProducts;
-    console.log(`[SISTEMA] Caché inicializada de forma segura desde Firestore. Alertas: ${localPriceAlerts.length}, Listas: ${cachedSchoolLists.length}`);
-  } catch (err: any) {
-    console.error('[FIREBASE] Fallo al inicializar estado desde Firestore:', err.message);
-  }
-}
-initializeState();
-
-// Background schedule checker: checks every 15 minutes if date has shifted.
-// If it shifts, it means 12:00 AM Midnight AST has completed and we must run the automated pricing sink.
-setInterval(() => {
-  const currentDay = getTodayDateASTString();
-  if (lastSyncTimestamp !== currentDay) {
-    console.log(`[PROGRAMACIÓN] La fecha AST cambió de ${lastSyncTimestamp} a ${currentDay}. Desencadenando actualización diaria automática de las 12:00 AM.`);
-    triggerMidnightPriceSync();
-  }
-}, 900000);
 
 const app = express();
 app.use(express.json());
@@ -2907,6 +2868,47 @@ app.post("/api/match-review/action", async (req, res) => {
     reviews: pendingMatchReviews
   });
 });
+
+// Initial bootstrap trigger
+loadProductsFromCache();
+loadSchoolListsFromCache();
+
+async function initializeState() {
+  console.log('[SISTEMA] Cargando datos iniciales de Firestore...');
+  try {
+    localPriceAlerts = await getPriceAlerts();
+    pendingMatchReviews = await getMatchReviews();
+    cachedSchoolProfiles = await getSchoolProfiles(SCHOOL_PROFILES);
+    cachedSchoolLists = await getSchoolLists(
+      [...SCHOOL_LISTS_DATA].map(list => {
+        const slug = getSchoolSlug(list.schoolName);
+        const hasProfile = cachedSchoolProfiles[slug] !== undefined;
+        return {
+          ...list,
+          city: hasProfile ? (cachedSchoolProfiles[slug].location.includes("Santiago") ? "Santiago de los Caballeros" : "Santo Domingo") : "Santo Domingo",
+          level: list.grade.toLowerCase().includes("secundaria") ? "Secundaria" : list.grade.toLowerCase().includes("kinder") || list.grade.toLowerCase().includes("pre") ? "Preescolar" : "Primaria"
+        };
+      })
+    );
+    const ingestions = await getPendingIngestions();
+    pendingSchools = ingestions.pendingSchools;
+    pendingProductSuggestions = ingestions.pendingProducts;
+    console.log(`[SISTEMA] Caché inicializada de forma segura desde Firestore. Alertas: ${localPriceAlerts.length}, Listas: ${cachedSchoolLists.length}`);
+  } catch (err: any) {
+    console.error('[FIREBASE] Fallo al inicializar estado desde Firestore:', err.message);
+  }
+}
+initializeState();
+
+// Background schedule checker: checks every 15 minutes if date has shifted.
+// If it shifts, it means 12:00 AM Midnight AST has completed and we must run the automated pricing sink.
+setInterval(() => {
+  const currentDay = getTodayDateASTString();
+  if (lastSyncTimestamp !== currentDay) {
+    console.log(`[PROGRAMACIÓN] La fecha AST cambió de ${lastSyncTimestamp} a ${currentDay}. Desencadenando actualización diaria automática de las 12:00 AM.`);
+    triggerMidnightPriceSync();
+  }
+}, 900000);
 
 // Setup Vite Development Server or Production Static file server
 async function startServer() {
