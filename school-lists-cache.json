@@ -1,0 +1,434 @@
+{
+  "schoolLists": [
+    {
+      "id": "list-01",
+      "schoolName": "Colegio Dominicano De La Salle",
+      "grade": "1ro de Primaria",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 6,
+          "isRequired": true,
+          "notes": "Colores azul, verde y rojo para materias básicas"
+        },
+        {
+          "productId": "prod-02",
+          "name": "Cuaderno de Caligrafía Mascot 60 Hojas",
+          "quantity": 2,
+          "isRequired": true,
+          "notes": "Para práctica semanal"
+        },
+        {
+          "productId": "prod-09",
+          "name": "Lápiz Grafito Mongol #2 Premium (Caja de 12)",
+          "quantity": 2,
+          "isRequired": true,
+          "notes": "Tener siempre 3 lápices amolados en el estuche"
+        },
+        {
+          "productId": "prod-03",
+          "name": "Caja de Lápices de Colores Prismacolor Junior x24",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-10",
+          "name": "Juego de Geometría Escolar Maped 4 Piezas",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-11",
+          "name": "Pegamento Escolar Líquido Elmers Blanco 4oz",
+          "quantity": 2,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-14",
+          "name": "Tijera Escolar Punta Roma Maped Koopy 5\"",
+          "quantity": 1,
+          "isRequired": true
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Primaria"
+    },
+    {
+      "id": "list-02",
+      "schoolName": "Colegio Dominicano De La Salle",
+      "grade": "5to de Secundaria (11mo)",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 8,
+          "isRequired": true,
+          "notes": "Uno por materia general"
+        },
+        {
+          "productId": "prod-08",
+          "name": "Calculadora Científica Casio fx-82MS 2nd Edition",
+          "quantity": 1,
+          "isRequired": true,
+          "notes": "Obligatorio en Matemática Avanzada y Física"
+        },
+        {
+          "productId": "prod-05",
+          "name": "Bolígrafos Bic Cristal Precision Azul (Caja de 10)",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-12",
+          "name": "Corrector en Cinta Liquid Paper Dryline Pro",
+          "quantity": 2,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-10",
+          "name": "Juego de Geometría Escolar Maped 4 Piezas",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-15",
+          "name": "Marcador Resaltador Faber-Castell Pastel (Set de 4)",
+          "quantity": 1,
+          "isRequired": false,
+          "notes": "Opcional para resúmenes estéticos"
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Secundaria"
+    },
+    {
+      "id": "list-03",
+      "schoolName": "Colegio Loyola (RD)",
+      "grade": "3ro de Primaria",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 8,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-09",
+          "name": "Lápiz Grafito Mongol #2 Premium (Caja de 12)",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-03",
+          "name": "Caja de Lápices de Colores Prismacolor Junior x24",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-11",
+          "name": "Pegamento Escolar Líquido Elmers Blanco 4oz",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-14",
+          "name": "Tijera Escolar Punta Roma Maped Koopy 5\"",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-13",
+          "name": "Bloque de Plastilina Faber-Castell 10 Colores",
+          "quantity": 2,
+          "isRequired": true,
+          "notes": "Para maquetas de Ciencias e Historia Dominicana"
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Primaria"
+    },
+    {
+      "id": "list-04",
+      "schoolName": "Otro Colegio (Lista General RD)",
+      "grade": "Kínder / Preescolar",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-13",
+          "name": "Bloque de Plastilina Faber-Castell 10 Colores",
+          "quantity": 3,
+          "isRequired": true,
+          "notes": "Estimulación motora primordial"
+        },
+        {
+          "productId": "prod-06",
+          "name": "Estuche de Témperas Pelikan x12 Colores + Pincel",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-11",
+          "name": "Pegamento Escolar Líquido Elmers Blanco 4oz",
+          "quantity": 2,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-14",
+          "name": "Tijera Escolar Punta Roma Maped Koopy 5\"",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-03",
+          "name": "Caja de Lápices de Colores Prismacolor Junior x24",
+          "quantity": 1,
+          "isRequired": true
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Preescolar"
+    },
+    {
+      "id": "list-05",
+      "schoolName": "Colegio Babeque Secundaria",
+      "grade": "3ro de Secundaria (9no)",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 10,
+          "isRequired": true,
+          "notes": "Portadas de colores diferentes por materia"
+        },
+        {
+          "productId": "prod-08",
+          "name": "Calculadora Científica Casio fx-82MS 2nd Edition",
+          "quantity": 1,
+          "isRequired": true,
+          "notes": "Necesaria para Álgebra del grado"
+        },
+        {
+          "productId": "prod-05",
+          "name": "Bolígrafos Bic Cristal Precision Azul (Caja de 10)",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-12",
+          "name": "Corrector en Cinta Liquid Paper Dryline Pro",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-10",
+          "name": "Juego de Geometría Escolar Maped 4 Piezas",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-15",
+          "name": "Marcador Resaltador Faber-Castell Pastel (Set de 4)",
+          "quantity": 2,
+          "isRequired": false
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Secundaria"
+    },
+    {
+      "id": "list-06",
+      "schoolName": "Colegio Carol Morgan School",
+      "grade": "1ro de Secundaria (7mo)",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 8,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-07",
+          "name": "Resma de Papel Satinado Premium Letter / Carta 500H",
+          "quantity": 1,
+          "isRequired": true,
+          "notes": "Entregar al tutor de lengua española"
+        },
+        {
+          "productId": "prod-05",
+          "name": "Bolígrafos Bic Cristal Precision Azul (Caja de 10)",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-12",
+          "name": "Corrector en Cinta Liquid Paper Dryline Pro",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-15",
+          "name": "Marcador Resaltador Faber-Castell Pastel (Set de 4)",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-04",
+          "name": "Mochila Escolar Porta-Laptop Ergonómica Oxford",
+          "quantity": 1,
+          "isRequired": false,
+          "notes": "Se recomienda mochila protectora para Chromebooks"
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Secundaria"
+    },
+    {
+      "id": "list-07",
+      "schoolName": "Colegio Amador",
+      "grade": "3ro de Primaria",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 5,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-02",
+          "name": "Cuaderno de Caligrafía Mascot 60 Hojas",
+          "quantity": 2,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-09",
+          "name": "Lápiz Grafito Mongol #2 Premium (Caja de 12)",
+          "quantity": 2,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-03",
+          "name": "Caja de Lápices de Colores Prismacolor Junior x24",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-11",
+          "name": "Pegamento Escolar Líquido Elmers Blanco 4oz",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-14",
+          "name": "Tijera Escolar Punta Roma Maped Koopy 5\"",
+          "quantity": 1,
+          "isRequired": true
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Primaria"
+    },
+    {
+      "id": "list-08",
+      "schoolName": "Colegio Saint George School",
+      "grade": "1ro de Primaria",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 6,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-02",
+          "name": "Cuaderno de Caligrafía Mascot 60 Hojas",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-03",
+          "name": "Caja de Lápices de Colores Prismacolor Junior x24",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-13",
+          "name": "Bloque de Plastilina Faber-Castell 10 Colores",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-11",
+          "name": "Pegamento Escolar Líquido Elmers Blanco 4oz",
+          "quantity": 2,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-14",
+          "name": "Tijera Escolar Punta Roma Maped Koopy 5\"",
+          "quantity": 1,
+          "isRequired": true
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Primaria"
+    },
+    {
+      "id": "list-09",
+      "schoolName": "Liceo República de Argentina",
+      "grade": "5to de Primaria",
+      "academicYear": "2026-2027",
+      "items": [
+        {
+          "productId": "prod-01",
+          "name": "Cuaderno Cosido Línea Rayado Mascot RD",
+          "quantity": 12,
+          "isRequired": true,
+          "notes": "Para uso diario en el aula"
+        },
+        {
+          "productId": "prod-09",
+          "name": "Lápiz Grafito Mongol #2 Premium (Caja de 12)",
+          "quantity": 2,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-05",
+          "name": "Bolígrafos Bic Cristal Precision Azul (Caja de 10)",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-03",
+          "name": "Caja de Lápices de Colores Prismacolor Junior x24",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-10",
+          "name": "Juego de Geometría Escolar Maped 4 Piezas",
+          "quantity": 1,
+          "isRequired": true
+        },
+        {
+          "productId": "prod-11",
+          "name": "Pegamento Escolar Líquido Elmers Blanco 4oz",
+          "quantity": 1,
+          "isRequired": true
+        }
+      ],
+      "city": "Santo Domingo",
+      "level": "Primaria"
+    }
+  ],
+  "schoolProfiles": {},
+  "pendingSchools": [],
+  "pendingProductSuggestions": []
+}

@@ -5,6 +5,29 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { PRODUCTS, SCHOOLS, GRADES, SCHOOL_LISTS_DATA, CATEGORIES } from "./src/data";
+import { getPriceAlerts, savePriceAlert, updatePriceAlertStatus } from "./services/priceAlertsService";
+import { getSchoolLists, saveSchoolList, getSchoolProfiles, saveSchoolProfile, deleteSchoolProfile, getPendingIngestions, savePendingSchool, savePendingProduct, updatePendingQueueStatus, getMatchReviews, saveMatchReview, updateMatchReviewStatus } from "./services/schoolListsService";
+import { scanRateLimiter, searchRateLimiter, alertRateLimiter, livePriceRateLimiter } from "./middleware/rateLimit";
+import { verifyBotToken } from "./middleware/botProtection";
+import { getASTDateInfo, getTodayDateASTString, toSlug } from "./services/utils";
+import { getLevenshteinDistance, calculateHybridMatchScore, simulateProductMatching } from "./services/matcher";
+import { requestLogger } from "./middleware/logger";
+import { useLocalFallback } from "./services/firestore";
+
+/**
+ * Helper to normalize school names to their canonical slugs.
+ */
+function getSchoolSlug(schoolName: string): string {
+  const slug = toSlug(schoolName);
+  if (slug.includes("loyola")) return "colegio-loyola";
+  if (slug.includes("morgan")) return "carol-morgan";
+  if (slug.includes("babeque")) return "babeque";
+  if (slug.includes("salle")) return "la-salle";
+  if (slug.includes("amador")) return "colegio-amador";
+  if (slug.includes("saint-george")) return "saint-george";
+  if (slug.includes("argentina")) return "liceo-republica-de-argentina";
+  return slug;
+}
 
 dotenv.config();
 
@@ -27,16 +50,7 @@ let localSearchLogs: { term: string; count: number; category: string }[] = [];
 let localPriceAlerts: any[] = [];
 let pendingMatchReviews: any[] = [];
 
-// Helper to calculate exact AST (GMT-4) time in Dominican Republic
-function getASTDateInfo(): Date {
-  const utc = new Date().getTime() + (new Date().getTimezoneOffset() * 60000);
-  return new Date(utc + (3600000 * -4));
-}
 
-function getTodayDateASTString(): string {
-  const d = getASTDateInfo();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 // Generate pre-populated price histories for the last 30 days
 function getInitialPriceHistory(basePrice: number, storePrices: any) {
@@ -63,76 +77,7 @@ function getInitialPriceHistory(basePrice: number, storePrices: any) {
   return history;
 }
 
-// LEVENSHTEIN COMPARATOR ENGINE
-function getLevenshteinDistance(a: string, b: string): number {
-  const tmp = [];
-  let i, j;
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
-  for (i = 0; i <= a.length; i++) tmp[i] = [i];
-  for (j = 0; j <= b.length; j++) tmp[0][j] = j;
-  for (i = 1; i <= a.length; i++) {
-    for (j = 1; j <= b.length; j++) {
-      tmp[i][j] = Math.min(
-        tmp[i - 1][j] + 1, // deletion
-        tmp[i][j - 1] + 1, // insertion
-        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1) // substitution
-      );
-    }
-  }
-  return tmp[a.length][b.length];
-}
 
-// HYBRID SCORES MATCHING COMPUTING (Levenshtein + overlap tokens + brand checks)
-function calculateHybridMatchScore(userItemText: string, product: any): { confidence: number; explanation: string } {
-  const source = userItemText.toLowerCase().trim()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-
-  const target = product.name.toLowerCase().trim()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-
-  // Compute normalized Levenshtein similarity
-  const maxLen = Math.max(source.length, target.length);
-  const levDist = getLevenshteinDistance(source, target);
-  const levSimilarity = maxLen > 0 ? (1 - (levDist / maxLen)) : 0;
-
-  // Token word-by-word intersection checks
-  const sourceTokens = source.split(/\s+/).filter(t => t.length > 2);
-  const targetTokens = target.split(/\s+/).filter(t => t.length > 2);
-  let overlapCount = 0;
-  for (const sTok of sourceTokens) {
-    if (targetTokens.some(tTok => tTok.includes(sTok) || sTok.includes(tTok))) {
-      overlapCount++;
-    }
-  }
-  const tokenOverlapScore = sourceTokens.length > 0 ? (overlapCount / sourceTokens.length) : 0;
-
-  // Brand association
-  let brandScore = 0;
-  if (product.brand && source.includes(product.brand.toLowerCase())) {
-    brandScore = 1;
-  }
-
-  // Weight combination
-  const confidence = (0.4 * tokenOverlapScore) + (0.35 * levSimilarity) + (0.25 * brandScore);
-  const finalScore = Math.min(0.99, Math.max(0.1, confidence));
-
-  let explanation = `Coincidencia local híbrida calculada en ${Math.round(finalScore * 100)}%. `;
-  if (finalScore >= 0.85) {
-    explanation += `Vínculo automático de alta confianza establecido con la marca '${product.brand}'.`;
-  } else if (finalScore >= 0.60) {
-    explanation += `Vínculo potencial de confianza media. Listo para revisión de los padres.`;
-  } else {
-    explanation += `Bajo nivel de coincidencia. Se sugirió el producto de la tienda como opción recomendada.`;
-  }
-
-  return {
-    confidence: finalScore,
-    explanation
-  };
-}
 
 // STRATEGY WRAPPER SELECTOR (API / HTML RAW DIRECT PARSER FALLBACK)
 class ScraperStrategyManager {
@@ -239,13 +184,16 @@ function loadProductsFromCache() {
 }
 
 // Automated 12:00 AM Midnight Sync generator
-function triggerMidnightPriceSync(forced = false) {
+async function triggerMidnightPriceSync(forced = false) {
   const today = getTodayDateASTString();
   const dateInfo = getASTDateInfo();
   const timeLabel = `${String(dateInfo.getHours()).padStart(2, '0')}:${String(dateInfo.getMinutes()).padStart(2, '0')}`;
   
   console.log(`[AUTOMATIZACIÓN] Iniciando Sincronizador de Medianoche (Hora AST actual: ${timeLabel}, Día actual: ${today}). Forzado: ${forced}`);
   
+  // Create a temporary copy to do async updates on database first
+  const updatedAlertsMap = new Map<string, any>();
+
   cachedProducts = cachedProducts.map(prod => {
     // Real-world random daily price fluctuations
     const pct = 0.955 + Math.random() * 0.09;
@@ -270,7 +218,7 @@ function triggerMidnightPriceSync(forced = false) {
     }].slice(-30); // Capture past rolling 30 days of data
     
     // Evaluate if any price alerts are triggered
-    localPriceAlerts = localPriceAlerts.map(alert => {
+    localPriceAlerts.forEach(alert => {
       if (alert.productId === prod.id && alert.status === "PENDING") {
         const lowestCurrentPrice = Math.min(
           storePrices.sirena, storePrices.jumbo, storePrices.nacional, 
@@ -279,10 +227,9 @@ function triggerMidnightPriceSync(forced = false) {
         );
         if (lowestCurrentPrice <= alert.targetPrice) {
           console.log(`[ALERTA DETECTADA] ¡Alerta de precio disparada para ${alert.email}! ${prod.name} bajó a RD$${lowestCurrentPrice}`);
-          return { ...alert, status: "TRIGGERED", triggeredPrice: lowestCurrentPrice, triggeredAt: today };
+          updatedAlertsMap.set(alert.id, { lowestCurrentPrice, today });
         }
       }
-      return alert;
     });
 
     return {
@@ -293,6 +240,17 @@ function triggerMidnightPriceSync(forced = false) {
     };
   });
   
+  // Commit database updates for triggered alerts
+  for (const [alertId, data] of updatedAlertsMap.entries()) {
+    await updatePriceAlertStatus(alertId, "TRIGGERED", { 
+      triggeredPrice: data.lowestCurrentPrice, 
+      triggeredAt: data.today 
+    });
+  }
+  
+  // Reload fresh alerts from Firestore (or fallback JSON)
+  localPriceAlerts = await getPriceAlerts();
+  
   lastSyncTimestamp = today;
   saveProductsToCache();
 }
@@ -300,6 +258,33 @@ function triggerMidnightPriceSync(forced = false) {
 // Initial bootstrap trigger
 loadProductsFromCache();
 loadSchoolListsFromCache();
+
+async function initializeState() {
+  console.log('[SISTEMA] Cargando datos iniciales de Firestore...');
+  try {
+    localPriceAlerts = await getPriceAlerts();
+    pendingMatchReviews = await getMatchReviews();
+    cachedSchoolProfiles = await getSchoolProfiles(SCHOOL_PROFILES);
+    cachedSchoolLists = await getSchoolLists(
+      [...SCHOOL_LISTS_DATA].map(list => {
+        const slug = getSchoolSlug(list.schoolName);
+        const hasProfile = cachedSchoolProfiles[slug] !== undefined;
+        return {
+          ...list,
+          city: hasProfile ? (cachedSchoolProfiles[slug].location.includes("Santiago") ? "Santiago de los Caballeros" : "Santo Domingo") : "Santo Domingo",
+          level: list.grade.toLowerCase().includes("secundaria") ? "Secundaria" : list.grade.toLowerCase().includes("kinder") || list.grade.toLowerCase().includes("pre") ? "Preescolar" : "Primaria"
+        };
+      })
+    );
+    const ingestions = await getPendingIngestions();
+    pendingSchools = ingestions.pendingSchools;
+    pendingProductSuggestions = ingestions.pendingProducts;
+    console.log(`[SISTEMA] Caché inicializada de forma segura desde Firestore. Alertas: ${localPriceAlerts.length}, Listas: ${cachedSchoolLists.length}`);
+  } catch (err: any) {
+    console.error('[FIREBASE] Fallo al inicializar estado desde Firestore:', err.message);
+  }
+}
+initializeState();
 
 // Background schedule checker: checks every 15 minutes if date has shifted.
 // If it shifts, it means 12:00 AM Midnight AST has completed and we must run the automated pricing sink.
@@ -313,6 +298,7 @@ setInterval(() => {
 
 const app = express();
 app.use(express.json());
+app.use(requestLogger);
 const PORT = 3000;
 
 // Initialize GoogleGenAI SDK lazily on request
@@ -335,14 +321,7 @@ function getGeminiClient() {
 // PROGRAMMATIC SEO METADATA & DATA LAYER
 // ==========================================
 
-function toSlug(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+
 
 const SCHOOL_PROFILES: Record<string, {
   fullName: string;
@@ -474,7 +453,7 @@ function loadSchoolListsFromCache() {
   // Populate first baseline from scratch
   cachedSchoolProfiles = { ...SCHOOL_PROFILES };
   cachedSchoolLists = [...SCHOOL_LISTS_DATA].map(list => {
-    const slug = toSlug(list.schoolName);
+    const slug = getSchoolSlug(list.schoolName);
     const hasProfile = cachedSchoolProfiles[slug] !== undefined;
     return {
       ...list,
@@ -876,18 +855,19 @@ function renderSEOLayout(options: {
   <footer class="bg-slate-900 text-slate-400 pt-10 pb-12 border-t border-slate-800 select-text">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-8">
       <div>
-        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-850 pb-2 mb-3">Colegios Oficiales RD</h4>
+        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-800 pb-2 mb-3">🏫 Dirección de Colegios RD</h4>
         <ul class="space-y-1.5 text-xs">
-          <li><a href="/colegios/colegio-loyola" class="hover:text-white transition-colors">• Colegio Loyola (RD)</a></li>
-          <li><a href="/colegios/carol-morgan" class="hover:text-white transition-colors">• Carol Morgan School</a></li>
-          <li><a href="/colegios/babeque" class="hover:text-white transition-colors">• Colegio Babeque Secundaria</a></li>
-          <li><a href="/colegios/la-salle" class="hover:text-white transition-colors">• Colegio Dominicano De La Salle</a></li>
-          <li><a href="/colegios/saint-george" class="hover:text-white transition-colors">• Saint George School</a></li>
+          <li><a href="/colegios/colegio-loyola" class="hover:text-white transition-colors">🦅 Colegio Loyola</a></li>
+          <li><a href="/colegios/carol-morgan" class="hover:text-white transition-colors">🏫 Carol Morgan School</a></li>
+          <li><a href="/colegios/babeque" class="hover:text-white transition-colors">⛵ Colegio Babeque Secundaria</a></li>
+          <li><a href="/colegios/la-salle" class="hover:text-white transition-colors">⭐ Colegio De La Salle</a></li>
+          <li><a href="/colegios/saint-george" class="hover:text-white transition-colors">🐉 Saint George School</a></li>
+          <li><a href="/colegios/colegio-amador" class="hover:text-white transition-colors">🎓 Colegio Amador</a></li>
         </ul>
       </div>
 
       <div>
-        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-850 pb-2 mb-3">Tiendas y Supermercados</h4>
+        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-800 pb-2 mb-3">🧜‍♀️ Comparar Cadenas</h4>
         <ul class="space-y-1.5 text-xs">
           <li><a href="/tiendas/la-sirena" class="hover:text-white transition-colors">🧜‍♀️ La Sirena</a></li>
           <li><a href="/tiendas/jumbo" class="hover:text-white transition-colors">🐘 Jumbo</a></li>
@@ -899,20 +879,21 @@ function renderSEOLayout(options: {
       </div>
 
       <div>
-        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-850 pb-2 mb-3">Artículos del Blog</h4>
+        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-800 pb-2 mb-3">📰 Artículos del Blog</h4>
         <ul class="space-y-1.5 text-xs">
           <li><a href="/blog/guia-regreso-clases-2026-rd" class="hover:text-white transition-colors">📖 Guía Regreso Clases 2026</a></li>
           <li><a href="/blog/como-ahorrar-compra-utiles-escolares" class="hover:text-white transition-colors">💰 Consejos para Ahorrar</a></li>
           <li><a href="/blog/comparativa-precios-sirena-jumbo-rd" class="hover:text-white transition-colors">📊 La Sirena vs. Jumbo</a></li>
           <li><a href="/blog/mejores-cuadernos-primaria-mascot-oxford" class="hover:text-white transition-colors">📒 Mejores Cuadernos RD</a></li>
           <li><a href="/blog/mejores-marcas-lapices-rd" class="hover:text-white transition-colors">✏️ Mejores Lápices de Grafito</a></li>
+          <li><a href="/blog/errores-comunes-al-comprar-la-lista-escolar" class="hover:text-white transition-colors">⚠️ Errores al Comprar Lista</a></li>
         </ul>
       </div>
 
       <div>
-        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-850 pb-2 mb-3 font-mono">Ciudades & Local</h4>
+        <h4 class="text-[9.5px] text-slate-100 uppercase font-black tracking-widest border-b border-slate-800 pb-2 mb-3 font-mono">📍 Localidades</h4>
         <ul class="space-y-1.5 text-xs">
-          <li><a href="/localidad/santo-domingo" class="hover:text-white transition-colors">📍 Distrito Nacional</a></li>
+          <li><a href="/localidad/santo-domingo" class="hover:text-white transition-colors">📍 Santo Domingo</a></li>
           <li><a href="/localidad/santiago" class="hover:text-white transition-colors">📍 Santiago de los Caballeros</a></li>
           <li><a href="/localidad/la-vega" class="hover:text-white transition-colors">📍 Concepción de La Vega</a></li>
           <li><a href="/localidad/san-francisco-de-macoris" class="hover:text-white transition-colors">📍 San Francisco de Macorís</a></li>
@@ -921,7 +902,7 @@ function renderSEOLayout(options: {
       </div>
     </div>
     
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 border-t border-slate-850 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 select-text gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 border-t border-slate-800 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 select-text gap-4">
       <p>© 2026 Útiles.Online RD. Todos los derechos reservados. Diseñado para optimizar el gasto familiar dominicano en educación.</p>
       <div class="flex gap-4">
         <a href="/robots.txt" class="hover:text-white transition-colors underline">Robots.txt</a>
@@ -1054,7 +1035,7 @@ app.get("/colegios/:slug", (req, res) => {
     return `
       <a href="/lista-utiles/${slug}/${cSlug}" class="flex flex-col p-4 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl transition-all hover:border-blue-300">
         <span class="text-xs font-black text-blue-600 block mb-0.5 uppercase tracking-wider font-mono">Año Escolar 2026</span>
-        <strong class="text-sm font-black text-slate-805 leading-tight">${gradeName}</strong>
+        <strong class="text-sm font-black text-slate-800 leading-tight">${gradeName}</strong>
         <p class="text-[11px] text-slate-400 mt-1">Ver lista de útiles, libros de texto recomendados y comparar cotizaciones de supermercados.</p>
       </a>
     `;
@@ -1067,18 +1048,50 @@ app.get("/colegios/:slug", (req, res) => {
     </div>
   `).join("");
 
-  const schemaJson = {
-    "@context": "https://schema.org",
-    "@type": "School",
-    "name": school.fullName,
-    "description": school.description,
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": school.location,
-      "addressCountry": "DO"
-    },
-    "hasCredential": school.levels
-  };
+  const schemaJson: any[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "School",
+      "name": school.fullName,
+      "description": school.description || `Lista oficial de útiles escolares y libros de texto recomendados para el ${school.fullName}.`,
+      "url": canonicalUrl,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": school.location,
+        "addressLocality": school.location.includes("Santiago") ? "Santiago de los Caballeros" : school.location.includes("Santo Domingo Este") ? "Santo Domingo Este" : "Santo Domingo",
+        "addressCountry": "DO"
+      },
+      "hasCredential": school.levels
+    }
+  ];
+
+  if (school.faq && school.faq.length > 0) {
+    schemaJson.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": school.faq.map(item => ({
+        "@type": "Question",
+        "name": item.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.a
+        }
+      }))
+    });
+  }
+
+  if (parentBreadcrumbs && parentBreadcrumbs.length > 0) {
+    schemaJson.push({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": parentBreadcrumbs.map((bc, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "name": bc.label.replace(/^[^\p{L}\p{N}\s]+/u, "").trim(),
+        "item": bc.url.startsWith("http") ? bc.url : `https://${req.get("host")}${bc.url}`
+      }))
+    });
+  }
 
   const contentHtml = `
     <div class="flex flex-col gap-6">
@@ -1126,7 +1139,7 @@ app.get("/colegios/:slug", (req, res) => {
 
   res.send(renderSEOLayout({
     title: `Lista de Útiles Escolares ${school.fullName} 2026 | Útiles.Online RD`,
-    metaDescription: school.description,
+    metaDescription: school.description || `Encuentra la lista oficial de útiles escolares para ${school.fullName} del período escolar 2026-2027. Compara precios en Jumbo, La Sirena y Bravo para ahorrar en la compra escolar.`,
     breadcrumbs: parentBreadcrumbs,
     contentHtml,
     schemaJson,
@@ -1147,7 +1160,7 @@ app.get("/lista-utiles/:schoolSlug/:gradeSlug", (req, res) => {
 
   // Retrieve existing or generate dynamic school list items
   let schoolList = cachedSchoolLists.find(l => 
-    toSlug(l.schoolName) === toSlug(realSchoolName) && 
+    getSchoolSlug(l.schoolName) === getSchoolSlug(realSchoolName) && 
     toSlug(l.grade) === toSlug(realGrade)
   );
 
@@ -1194,6 +1207,7 @@ app.get("/lista-utiles/:schoolSlug/:gradeSlug", (req, res) => {
     const prod = cachedProducts.find(p => p.id === item.productId || toSlug(p.name) === toSlug(item.name));
     if (prod) {
       const qty = item.quantity;
+      const isExempt = (prod as any).exemptITBIS === true;
       storeCostsList.forEach(st => {
         let pPrice = prod.price;
         const key = st.id;
@@ -1205,13 +1219,13 @@ app.get("/lista-utiles/:schoolSlug/:gradeSlug", (req, res) => {
           else if (key === 'nacional' || key === 'carrefour') pPrice = Math.round(prod.price * 1.05);
         }
         st.subtotal += pPrice * qty;
+        st.tax += isExempt ? 0 : Math.round(pPrice * qty * 0.18);
       });
     }
   });
 
   storeCostsList.forEach(st => {
-    st.tax = Math.round(st.subtotal * 0.18);
-    st.total = Math.round(st.subtotal * 1.18);
+    st.total = st.subtotal + st.tax;
   });
 
   const sortedCosts = [...storeCostsList].sort((a, b) => a.total - b.total);
@@ -1250,7 +1264,7 @@ app.get("/lista-utiles/:schoolSlug/:gradeSlug", (req, res) => {
   const comparisonTableHtml = sortedCosts.map((st, idx) => {
     const isCheapest = idx === 0;
     return `
-      <div class="flex justify-between items-center bg-white p-3 border border-slate-150 rounded-xl ${isCheapest ? 'ring-2 ring-emerald-500 border-transparent bg-emerald-50/10' : ''}">
+      <div class="flex justify-between items-center bg-white p-3 border border-slate-200 rounded-xl ${isCheapest ? 'ring-2 ring-emerald-500 border-transparent bg-emerald-50/10' : ''}">
         <div class="flex items-center gap-2">
           <span class="text-lg shrink-0">${st.logo}</span>
           <div>
@@ -1263,7 +1277,7 @@ app.get("/lista-utiles/:schoolSlug/:gradeSlug", (req, res) => {
             <span class="text-xs sm:text-sm font-mono font-black text-slate-900">RD$ ${st.total}</span>
             <span class="text-[9px] text-slate-400 block -mt-1 font-medium font-mono">Tax incl.</span>
           </div>
-          ${isCheapest ? `<span class="bg-emerald-50 border border-emerald-150 text-emerald-800 text-[8.5px] font-black px-2 py-0.5 rounded leading-none shrink-0 font-sans uppercase">Ahorras+</span>` : ""}
+          ${isCheapest ? `<span class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-[8.5px] font-black px-2 py-0.5 rounded leading-none shrink-0 font-sans uppercase">Ahorras+</span>` : ""}
         </div>
       </div>
     `;
@@ -1333,14 +1347,14 @@ app.get("/lista-utiles/:schoolSlug/:gradeSlug", (req, res) => {
 
       <!-- School Grade FAQ Page -->
       <div class="bg-white border border-slate-200 rounded-2xl p-6 lg:p-8">
-        <h3 class="text-base font-black text-slate-905 uppercase border-b border-slate-100 pb-2 mb-4 shrink-0">Preguntas Frecuentes de la Lista de Útiles</h3>
+        <h3 class="text-base font-black text-slate-900 uppercase border-b border-slate-100 pb-2 mb-4 shrink-0">Preguntas Frecuentes de la Lista de Útiles</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-slate-50 border border-slate-150/40 rounded-xl">
-            <h4 class="text-xs sm:text-sm font-black text-slate-850">¿Cuánto cuesta comprar la lista completa para ${realGrade} del ${realSchoolName}?</h4>
+          <div class="p-4 bg-slate-50 border border-slate-200/40 rounded-xl">
+            <h4 class="text-xs sm:text-sm font-black text-slate-800">¿Cuánto cuesta comprar la lista completa para ${realGrade} del ${realSchoolName}?</h4>
             <p class="text-xs text-slate-500 mt-1 leading-relaxed">El costo promedio total de la lista varía entre RD$ ${cheapestStore.total.toLocaleString("es-DO")} en supermercados de bajo costo como Almacenes Garrido y Bravo, y RD$ ${mostExpensiveStore.total.toLocaleString("es-DO")} en cadenas tradicionales.</p>
           </div>
-          <div class="p-4 bg-slate-50 border border-slate-150/40 rounded-xl">
-            <h4 class="text-xs sm:text-sm font-black text-slate-850">¿Cómo puedo comprar estos útiles escolares online con envío express?</h4>
+          <div class="p-4 bg-slate-50 border border-slate-200/40 rounded-xl">
+            <h4 class="text-xs sm:text-sm font-black text-slate-800">¿Cómo puedo comprar estos útiles escolares online con envío express?</h4>
             <p class="text-xs text-slate-500 mt-1 leading-relaxed">Puedes ingresar a la aplicación interactiva de Útiles.Online RD, escanear tu lista de forma automática e integrada con nuestra IA, y proceder al checkout con un solo clic. ¡Te empacamos y enviamos todo directo a tu puerta!</p>
           </div>
         </div>
@@ -1349,21 +1363,33 @@ app.get("/lista-utiles/:schoolSlug/:gradeSlug", (req, res) => {
     </div>
   `;
 
-  // FAQPage Schema
-  const schemaJson = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": `¿Cuánto cuesta comprar la lista completa para ${realGrade} del ${realSchoolName}?`,
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": `El costo estimado para adquirir toda la lista de útiles escolares ronda entre RD$ ${cheapestStore.total.toLocaleString("es-DO")} en tiendas baratas y RD$ ${mostExpensiveStore.total.toLocaleString("es-DO")} en tiendas exclusivas de República Dominicana.`
+  // FAQPage and BreadcrumbList Schema
+  const schemaJson = [
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": `¿Cuánto cuesta comprar la lista completa para ${realGrade} del ${realSchoolName}?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `El costo estimado para adquirir toda la lista de útiles escolares ronda entre RD$ ${cheapestStore.total.toLocaleString("es-DO")} en tiendas baratas y RD$ ${mostExpensiveStore.total.toLocaleString("es-DO")} en tiendas exclusivas de República Dominicana.`
+          }
         }
-      }
-    ]
-  };
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": parentBreadcrumbs.map((bc, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "name": bc.label.replace(/^[^\p{L}\p{N}\s]+/u, "").trim(),
+        "item": bc.url.startsWith("http") ? bc.url : `https://${req.get("host")}${bc.url}`
+      }))
+    }
+  ];
 
   res.send(renderSEOLayout({
     title: `Lista de Útiles ${realSchoolName} ${realGrade} 2026 | Útiles.Online RD`,
@@ -1408,19 +1434,19 @@ app.get("/producto/:slug", (req, res) => {
     { name: '🇨🇵 Carrefour', key: 'carrefour', price: prod.storePrices?.carrefour || (prod.storePrices?.carrefour || Math.round(prod.price * 1.04)) }
   ];
 
-  const validPrices = pricesList.map(p => p.price);
-  const lowPrice = Math.min(...validPrices);
-  const highPrice = Math.max(...validPrices);
-  const averagePrice = Math.round(validPrices.reduce((a,b) => a+b, 0) / validPrices.length);
+  const validPrices = pricesList.map(p => p.price).filter(p => typeof p === 'number' && !isNaN(p));
+  const lowPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+  const highPrice = validPrices.length > 0 ? Math.max(...validPrices) : 0;
+  const averagePrice = validPrices.length > 0 ? Math.round(validPrices.reduce((a,b) => a+b, 0) / validPrices.length) : 0;
 
   const pricesRowsHtml = pricesList.sort((a,b) => a.price - b.price).map((st, idx) => {
     const isCheapest = idx === 0;
     return `
-      <div class="flex justify-between items-center bg-white p-3 border border-slate-150 rounded-xl ${isCheapest ? 'ring-2 ring-emerald-500 border-transparent bg-emerald-50/10' : ''}">
+      <div class="flex justify-between items-center bg-white p-3 border border-slate-200 rounded-xl ${isCheapest ? 'ring-2 ring-emerald-500 border-transparent bg-emerald-50/10' : ''}">
         <span class="text-xs sm:text-sm font-black text-slate-800">${st.name}</span>
         <div class="flex items-center gap-2">
-          <span class="text-xs sm:text-sm font-mono font-black text-slate-905">RD$ ${st.price}</span>
-          ${isCheapest ? `<span class="bg-emerald-50 text-emerald-700 text-[8.5px] border border-emerald-150 font-black px-1.5 py-0.5 rounded leading-none">PRECIO MÍNIMO</span>` : ""}
+          <span class="text-xs sm:text-sm font-mono font-black text-slate-900">RD$ ${st.price}</span>
+          ${isCheapest ? `<span class="bg-emerald-50 text-emerald-700 text-[8.5px] border border-emerald-200 font-black px-1.5 py-0.5 rounded leading-none">PRECIO MÍNIMO</span>` : ""}
         </div>
       </div>
     `;
@@ -1449,33 +1475,45 @@ app.get("/producto/:slug", (req, res) => {
     return `${x},${y}`;
   }).join(" ");
 
-  const schemaJson = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": prod.name,
-    "image": prod.image,
-    "description": prod.description,
-    "brand": {
-      "@type": "Brand",
-      "name": prod.brand
-    },
-    "offers": {
-      "@type": "AggregateOffer",
-      "priceCurrency": "DOP",
-      "lowPrice": lowPrice.toString(),
-      "highPrice": highPrice.toString(),
-      "offerCount": pricesList.length.toString(),
-      "offers": pricesList.map(st => ({
-        "@type": "Offer",
-        "price": st.price.toString(),
+  const schemaJson = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": prod.name,
+      "image": prod.image,
+      "description": prod.description,
+      "brand": {
+        "@type": "Brand",
+        "name": prod.brand
+      },
+      "offers": {
+        "@type": "AggregateOffer",
         "priceCurrency": "DOP",
-        "seller": {
-          "@type": "Organization",
-          "name": st.name
-        }
+        "lowPrice": lowPrice.toString(),
+        "highPrice": highPrice.toString(),
+        "offerCount": pricesList.length.toString(),
+        "offers": pricesList.map(st => ({
+          "@type": "Offer",
+          "price": st.price.toString(),
+          "priceCurrency": "DOP",
+          "seller": {
+            "@type": "Organization",
+            "name": st.name
+          }
+        }))
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": parentBreadcrumbs.map((bc, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "name": bc.label.replace(/^[^\p{L}\p{N}\s]+/u, "").trim(),
+        "item": bc.url.startsWith("http") ? bc.url : `https://${req.get("host")}${bc.url}`
       }))
     }
-  };
+  ];
 
   const contentHtml = `
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 select-text">
@@ -1504,10 +1542,10 @@ app.get("/producto/:slug", (req, res) => {
       <!-- Specs & Comparative Grid Right Column -->
       <div class="lg:col-span-7 flex flex-col gap-6">
         <div>
-          <span class="bg-blue-50 border border-blue-150 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded font-mono uppercase tracking-wider">
+          <span class="bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded font-mono uppercase tracking-wider">
             Marca Oficial: ${prod.brand}
           </span>
-          <h1 class="text-2xl sm:text-3xl font-black text-slate-905 mt-2 leading-tight select-text">${prod.name}</h1>
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2 leading-tight select-text">${prod.name}</h1>
           <p class="text-slate-500 text-xs sm:text-sm mt-1.5 leading-relaxed font-medium select-text">${prod.description}</p>
         </div>
 
@@ -1522,7 +1560,7 @@ app.get("/producto/:slug", (req, res) => {
         </div>
 
         <!-- Product Specs Box -->
-        <div class="bg-indigo-50/20 border border-indigo-150 p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div class="bg-indigo-50/20 border border-indigo-200 p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div class="flex-1 text-center sm:text-left">
             <strong class="text-xs text-slate-800 uppercase font-black block">Mejor precio hoy</strong>
             <p class="text-[10px] text-slate-400 font-semibold leading-tight">Ahorras más adquiriendo en distribuidoras asociadas locales.</p>
@@ -1579,18 +1617,20 @@ app.get("/tiendas/:slug", (req, res) => {
   // Calculate store stats based on total products
   let registeredGoodsCount = 0;
   let totalSum = 0;
-  cachedProducts.forEach(p => {
+  (cachedProducts || []).forEach(p => {
+    if (!p) return;
     const pricesObj = p.storePrices as any;
-    if (pricesObj && pricesObj[storeId]) {
+    if (pricesObj && typeof pricesObj[storeId] === 'number' && !isNaN(pricesObj[storeId])) {
       registeredGoodsCount++;
       totalSum += pricesObj[storeId];
     } else {
+      const fallbackPrice = typeof p.price === 'number' && !isNaN(p.price) ? p.price : 0;
       registeredGoodsCount++;
-      totalSum += Math.round(p.price * 0.95); // fallback estimate simulation
+      totalSum += Math.round(fallbackPrice * 0.95); // fallback estimate simulation
     }
   });
 
-  const averagePrice = Math.round(totalSum / (registeredGoodsCount || 1));
+  const averagePrice = registeredGoodsCount > 0 ? Math.round(totalSum / registeredGoodsCount) : 0;
 
   // Extract top 3 cheap products inside this store
   const cheapProductsHtml = cachedProducts.slice(0, 4).map(p => {
@@ -1607,17 +1647,39 @@ app.get("/tiendas/:slug", (req, res) => {
           </a>
           <span class="text-[9.5px] text-slate-400 block font-medium mt-0.5">Categoría: ${p.category}</span>
         </div>
-        <strong class="text-sm font-mono font-black text-slate-905 ml-3">RD$ ${pPrice}</strong>
+        <strong class="text-sm font-mono font-black text-slate-900 ml-3">RD$ ${pPrice}</strong>
       </div>
     `;
   }).join("");
 
   const schemaJson = {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": storeInfo.name,
-    "description": storeInfo.desc,
-    "priceRange": "$$"
+    "@graph": [
+      {
+        "@type": "LocalBusiness",
+        "@id": `${canonicalUrl}#localbusiness`,
+        "name": storeInfo.name,
+        "description": storeInfo.desc,
+        "url": canonicalUrl,
+        "priceRange": "DOP",
+        "image": `https://${req.get("host")}/assets/logo.png`,
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "DO",
+          "addressLocality": "República Dominicana"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${canonicalUrl}#breadcrumb`,
+        "itemListElement": parentBreadcrumbs.map((bc, idx) => ({
+          "@type": "ListItem",
+          "position": idx + 1,
+          "name": bc.label.replace(/^[^\p{L}\p{N}\s]+/u, "").trim(),
+          "item": bc.url.startsWith("http") ? bc.url : `https://${req.get("host")}${bc.url}`
+        }))
+      }
+    ]
   };
 
   const contentHtml = `
@@ -1647,7 +1709,7 @@ app.get("/tiendas/:slug", (req, res) => {
       <div class="lg:col-span-8 flex flex-col gap-6">
         <div>
           <h2 class="text-base font-black text-slate-900 border-b border-slate-200 pb-2 mb-3.5 uppercase tracking-tight">Acerca de las Góndolas Escolares de ${storeInfo.name}</h2>
-          <p class="text-slate-650 text-xs sm:text-sm leading-relaxed">${storeInfo.desc}</p>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">${storeInfo.desc}</p>
         </div>
 
         <div>
@@ -1673,8 +1735,8 @@ app.get("/tiendas/:slug", (req, res) => {
   `;
 
   res.send(renderSEOLayout({
-    title: `Precios de Útiles en ${storeInfo.name} 2026 | Útiles.Online RD`,
-    metaDescription: `Sigue y compara el costo de canastas escolares en ${storeInfo.name} República Dominicana. Ahorra cotizando online cuadernos Mascot e implementos para el año de clases.`,
+    title: `Precios de Útiles Escolares en ${storeInfo.name} 2026 | Útiles.Online RD`,
+    metaDescription: `Compara precios de útiles escolares en ${storeInfo.name} República Dominicana. Monitoreamos ${registeredGoodsCount} artículos con un precio promedio de RD$ ${averagePrice}. ¡Optimiza tu presupuesto familiar hoy!`,
     breadcrumbs: parentBreadcrumbs,
     contentHtml,
     schemaJson,
@@ -1686,8 +1748,50 @@ app.get("/tiendas/:slug", (req, res) => {
 // 5. PUBLIC SEO PAGE: /blog/:slug
 // ------------------------------------------
 
+function formatInlineMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>")
+    .replace(/_(.*?)_/g, "<em>$1</em>")
+    .replace(/`(.*?)`/g, '<code class="bg-slate-100 px-1 rounded font-mono">$1</code>');
+}
+
+function renderMarkdownToHtml(text: string): string {
+  const normalizedText = text.replace(/\r\n/g, "\n");
+  return normalizedText.split("\n\n").map(paragraph => {
+    paragraph = paragraph.trim();
+    if (!paragraph) return "";
+
+    if (paragraph.startsWith("####")) {
+      return `<h4 class="text-sm font-black text-slate-900 uppercase tracking-tight mt-4 mb-2">${formatInlineMarkdown(paragraph.replace(/^####\s*/, ""))}</h4>`;
+    }
+    if (paragraph.startsWith("###")) {
+      return `<h3 class="text-base sm:text-lg font-black text-slate-900 uppercase tracking-tight mt-6 mb-2">${formatInlineMarkdown(paragraph.replace(/^###\s*/, ""))}</h3>`;
+    }
+    if (paragraph.startsWith("##")) {
+      return `<h2 class="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight mt-8 mb-3">${formatInlineMarkdown(paragraph.replace(/^##\s*/, ""))}</h2>`;
+    }
+    if (paragraph.startsWith("#")) {
+      return `<h1 class="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight mt-10 mb-4">${formatInlineMarkdown(paragraph.replace(/^#\s*/, ""))}</h1>`;
+    }
+
+    if (paragraph.startsWith("-") || paragraph.startsWith("*")) {
+      const listItems = paragraph.split("\n")
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .map(it => {
+          const content = it.replace(/^[-*]\s*/, "");
+          return `<li class="mb-1">${formatInlineMarkdown(content)}</li>`;
+        }).join("");
+      return `<ul class="list-disc ml-5 my-3 text-xs sm:text-sm text-slate-600 leading-relaxed">${listItems}</ul>`;
+    }
+
+    return `<p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">${formatInlineMarkdown(paragraph)}</p>`;
+  }).join("");
+}
+
 app.get("/blog/:slug", (req, res) => {
-  const postSlug = req.params.slug;
+  const postSlug = req.params.slug.toLowerCase();
   const post = BLOG_POSTS[postSlug];
 
   if (!post) {
@@ -1703,56 +1807,80 @@ app.get("/blog/:slug", (req, res) => {
   const canonicalUrl = `https://${req.get("host")}/blog/${postSlug}`;
 
   // Formulating and wrapping markdown headers with our programmatic CSS rules
-  const bodyParagraphsHtml = post.body.split("\n\n").map(paragraph => {
-    if (paragraph.startsWith("###")) {
-      return `<h3 class="text-base sm:text-lg font-black text-slate-905 uppercase tracking-tight mt-6 mb-2">${paragraph.replace("###", "").trim()}</h3>`;
-    }
-    if (paragraph.startsWith("-")) {
-      const listItems = paragraph.split("\n").map(it => `<li class="mb-1">${it.replace("-", "").trim()}</li>`).join("");
-      return `<ul class="list-disc ml-5 my-3 text-xs sm:text-sm text-slate-600 leading-relaxed">${listItems}</ul>`;
-    }
-    return `<p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">${paragraph.trim()}</p>`;
-  }).join("");
+  const bodyParagraphsHtml = renderMarkdownToHtml(post.body);
 
   // Relevant Product Suggestion widgets in the editorial columns
   const relevantProductsHtml = cachedProducts.slice(0, 3).map(p => {
     const slug = toSlug(p.name);
     return `
-      <div class="bg-gray-50 border border-slate-150 p-3 rounded-xl flex items-center justify-between gap-3">
+      <div class="bg-gray-50 border border-slate-200 p-3 rounded-xl flex items-center justify-between gap-3">
         <div class="min-w-0 flex-1">
           <a href="/producto/${slug}" class="text-xs font-black text-blue-600 hover:underline block truncate leading-tight">${p.name}</a>
           <span class="text-[9px] text-slate-400 block font-bold mt-0.5">Marca: ${p.brand}</span>
         </div>
-        <strong class="text-xs font-mono font-black text-slate-905">RD$ ${p.price}</strong>
+        <strong class="text-xs font-mono font-black text-slate-900">RD$ ${p.price}</strong>
       </div>
     `;
   }).join("");
 
-  const schemaJson = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    "headline": post.title,
-    "description": post.meta,
-    "audience": {
-      "@type": "Audience",
-      "geographicArea": {
-        "@type": "AdministrativeArea",
-        "name": "Republica Dominicana"
+  const schemaJson = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": canonicalUrl
+      },
+      "headline": post.title,
+      "description": post.meta,
+      "image": `https://${req.get("host")}/assets/logo.png`,
+      "datePublished": "2026-06-01T08:00:00-04:00",
+      "dateModified": "2026-06-05T20:44:02-04:00",
+      "inLanguage": "es-DO",
+      "author": {
+        "@type": "Organization",
+        "name": "Útiles.Online RD",
+        "url": `https://${req.get("host")}/`
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Útiles.Online RD",
+        "logo": {
+          "@type": "ImageObject",
+          "url": `https://${req.get("host")}/assets/logo.png`
+        }
+      },
+      "audience": {
+        "@type": "Audience",
+        "geographicArea": {
+          "@type": "AdministrativeArea",
+          "name": "República Dominicana"
+        }
       }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": parentBreadcrumbs.map((bc, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "name": bc.label.replace(/^[^\p{L}\p{N}\s]+/u, "").trim(),
+        "item": bc.url.startsWith("http") ? bc.url : `https://${req.get("host")}${bc.url}`
+      }))
     }
-  };
+  ];
 
   const contentHtml = `
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 select-text">
       
       <!-- Primary Core Text Column -->
-      <div class="lg:col-span-8 bg-white border border-slate-205 rounded-2xl p-6 lg:p-8">
+      <div class="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 lg:p-8">
         <div class="flex items-center justify-between gap-4 text-xs font-bold text-slate-400 font-mono border-b border-slate-100 pb-3 mb-4 select-none">
           <span>Categoría: ${post.category}</span>
           <span>⏱️ ${post.readTime}</span>
         </div>
         
-        <h1 class="text-2xl sm:text-3xl font-black text-slate-905 leading-tight tracking-tight uppercase">${post.h1}</h1>
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight uppercase">${post.h1}</h1>
         
         <div class="markdown-body mt-6">
           ${bodyParagraphsHtml}
@@ -1794,7 +1922,7 @@ app.get("/blog/:slug", (req, res) => {
 // ------------------------------------------
 
 app.get("/localidad/:slug", (req, res) => {
-  const cityId = req.params.slug;
+  const cityId = req.params.slug.toLowerCase();
   const cityInfo = DOMINICAN_CITIES[cityId];
 
   if (!cityInfo) {
@@ -1809,41 +1937,49 @@ app.get("/localidad/:slug", (req, res) => {
   ];
 
   const storesListHtml = cityInfo.keyStores.map(st => `
-    <div class="bg-white p-4 border border-slate-150 rounded-xl">
-      <strong class="text-sm font-black text-slate-805 block">${st.name}</strong>
+    <div class="bg-white p-4 border border-slate-200 rounded-xl">
+      <strong class="text-sm font-black text-slate-800 block">${st.name}</strong>
       <p class="text-xs text-slate-500 mt-1 select-text">${st.desc}</p>
     </div>
   `).join("");
 
   const schoolsLinksHtml = cityInfo.keyColegios.map(sc => {
-    let slug = toSlug(sc);
-    // Custom mappings
-    if (slug.includes("loyola")) slug = "colegio-loyola";
-    else if (slug.includes("morgan")) slug = "carol-morgan";
-    else if (slug.includes("babeque")) slug = "babeque";
-    else if (slug.includes("salle")) slug = "la-salle";
-    else if (slug.includes("amador")) slug = "colegio-amador";
-    else if (slug.includes("saint-george")) slug = "saint-george";
-    else if (slug.includes("argentina")) slug = "liceo-republica-de-argentina";
-
+    const slug = getSchoolSlug(sc);
     return `
-      <a href="/colegios/${slug}" class="text-xs sm:text-sm font-bold text-blue-600 hover:underline inline-block bg-blue-50/10 border border-blue-150 px-3.5 py-1.5 rounded-full hover:bg-blue-100 transition-all font-sans leading-none">
+      <a href="/colegios/${slug}" class="text-xs sm:text-sm font-bold text-blue-600 hover:underline inline-block bg-blue-50/10 border border-blue-200 px-3.5 py-1.5 rounded-full hover:bg-blue-100 transition-all font-sans leading-none">
         🏫 ${sc}
       </a>
     `;
   }).join("");
 
-  const schemaJson = {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": `Útiles Escolares en ${cityInfo.name} - Útiles.Online`,
-    "description": cityInfo.description,
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": cityInfo.name,
-      "addressCountry": "DO"
+  const schemaJson = [
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": `Útiles Escolares en ${cityInfo.name} - Útiles.Online`,
+      "description": cityInfo.description,
+      "url": canonicalUrl,
+      "image": `https://${req.get("host")}/assets/logo.png`,
+      "priceRange": "DOP",
+      "telephone": "(809) 555-0129",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": cityInfo.name,
+        "addressRegion": cityInfo.name,
+        "addressCountry": "DO"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": parentBreadcrumbs.map((bc, idx) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "name": bc.label.replace(/^[^\p{L}\p{N}\s]+/u, "").trim(),
+        "item": bc.url.startsWith("http") ? bc.url : `https://${req.get("host")}${bc.url}`
+      }))
     }
-  };
+  ];
 
   const contentHtml = `
     <div class="flex flex-col gap-6 select-text">
@@ -1854,7 +1990,7 @@ app.get("/localidad/:slug", (req, res) => {
           <span>📍</span> Cobertura de Precios Locales
         </div>
         <h1 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2 uppercase tracking-tight">Útiles Escolares en ${cityInfo.name} RD</h1>
-        <p class="text-slate-650 text-xs sm:text-sm mt-3 leading-relaxed">${cityInfo.details}</p>
+        <p class="text-slate-600 text-xs sm:text-sm mt-3 leading-relaxed">${cityInfo.details}</p>
         
         <div class="border-t border-slate-100 mt-6 pt-5">
           <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest font-mono mb-3">Colegios Relevantes en esta Zona</h3>
@@ -1874,7 +2010,7 @@ app.get("/localidad/:slug", (req, res) => {
         </div>
       </div>
 
-    </div>
+     </div>
   `;
 
   res.send(renderSEOLayout({
@@ -1891,25 +2027,32 @@ app.get("/localidad/:slug", (req, res) => {
 
 // 1. API: Health Check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", app: "Utiles Online RD" });
+  res.json({
+    status: "ok",
+    app: "Útiles Online RD",
+    uptime: Math.round(process.uptime()),
+    memory: process.memoryUsage(),
+    dbFallbackActive: useLocalFallback,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Helper definition to process ingested school lists
-function processIngestedList(parsed: any, cityName?: string) {
+async function processIngestedList(parsed: any, cityName?: string) {
   const schoolName = (parsed.schoolName && parsed.schoolName.trim()) || "Otro Colegio (Lista General RD)";
   const academicYear = parsed.academicYear || "2026-2027";
   const level = parsed.level || "Primaria";
   const grade = parsed.grade || "1ro de Primaria";
   const city = cityName || "Santo Domingo";
   
-  const schoolSlug = toSlug(schoolName);
+  const schoolSlug = getSchoolSlug(schoolName);
   const gradeSlug = toSlug(grade) + "-2026"; // Consistent with requirements and presets
   
   let isNewSchool = false;
   
   // Ensure cachedSchoolProfiles is loaded
   if (!cachedSchoolProfiles) {
-    cachedSchoolProfiles = { ...SCHOOL_PROFILES };
+    cachedSchoolProfiles = await getSchoolProfiles(SCHOOL_PROFILES);
   }
   
   // Check if school exists
@@ -1928,25 +2071,31 @@ function processIngestedList(parsed: any, cityName?: string) {
     };
     
     // Add to pending review queue
-    pendingSchools.push({
+    const pendingSchoolObj = {
       id: `school-rev-${Date.now()}-${Math.random().toString(36).substring(2,7)}`,
       name: schoolName,
       slug: schoolSlug,
       city: city,
       addedAt: new Date().toISOString(),
       status: 'pending'
-    });
+    };
+    await savePendingSchool(pendingSchoolObj);
+    pendingSchools.push(pendingSchoolObj);
+    await saveSchoolProfile(schoolSlug, cachedSchoolProfiles[schoolSlug]);
   } else {
     // School exists, ensure course is registered
     const profile = cachedSchoolProfiles[schoolSlug];
     if (profile && !profile.courses.includes(gradeSlug)) {
       profile.courses.push(gradeSlug);
+      await saveSchoolProfile(schoolSlug, profile);
     }
   }
   
   // Now process product items matching
   let suggestedProducts: any[] = [];
-  const processedItems = parsed.items.map((it: any) => {
+  const processedItems = [];
+  
+  for (const it of parsed.items) {
     let bestProd: any = null;
     let bestScoreNu = 0;
     
@@ -1962,7 +2111,7 @@ function processIngestedList(parsed: any, cityName?: string) {
     
     if (!isMatch) {
       const sugId = `prod-sug-${Date.now()}-${Math.random().toString(36).substring(2,7)}`;
-      suggestedProducts.push({
+      const newSuggestion = {
         id: sugId,
         name: it.productName,
         quantity: it.quantity || 1,
@@ -1971,11 +2120,13 @@ function processIngestedList(parsed: any, cityName?: string) {
         observations: it.observations || "",
         addedAt: new Date().toISOString(),
         status: 'pending'
-      });
-      pendingProductSuggestions.push(suggestedProducts[suggestedProducts.length - 1]);
+      };
+      await savePendingProduct(newSuggestion);
+      pendingProductSuggestions.push(newSuggestion);
+      suggestedProducts.push(newSuggestion);
     }
     
-    return {
+    processedItems.push({
       productId: isMatch ? bestProd.id : "prod-01", // fallback to notebook if unmatched
       name: isMatch ? bestProd.name : it.productName,
       quantity: it.quantity || 1,
@@ -1983,8 +2134,8 @@ function processIngestedList(parsed: any, cityName?: string) {
       notes: it.observations || "",
       isSuggested: !isMatch,
       originalExtractedName: it.productName
-    };
-  });
+    });
+  }
   
   // Build and save school list
   const listId = `list-dyn-${Date.now()}-${Math.random().toString(36).substring(2,7)}`;
@@ -2000,7 +2151,7 @@ function processIngestedList(parsed: any, cityName?: string) {
   
   // Overwrite if exact same school, grade and year exists to keep cache clean
   const existingIndex = cachedSchoolLists.findIndex(l => 
-    toSlug(l.schoolName) === schoolSlug && 
+    getSchoolSlug(l.schoolName) === schoolSlug && 
     toSlug(l.grade) === toSlug(grade) && 
     l.academicYear === academicYear
   );
@@ -2012,11 +2163,14 @@ function processIngestedList(parsed: any, cityName?: string) {
       city,
       level
     };
+    await saveSchoolList(cachedSchoolLists[existingIndex]);
   } else {
     cachedSchoolLists.push(schoolList);
+    await saveSchoolList(schoolList);
   }
   
-  saveSchoolListsToCache();
+  // Reload fresh lists
+  cachedSchoolLists = await getSchoolLists(SCHOOL_LISTS_DATA);
   
   return {
     schoolList,
@@ -2043,7 +2197,7 @@ app.get("/api/lists", (req, res) => {
 });
 
 // 1.3 API: School lists search engine
-app.get("/api/lists/search", (req, res) => {
+app.get("/api/lists/search", searchRateLimiter, (req, res) => {
   const { schoolQuery, city, grade, academicYear } = req.query;
   
   let results = [...cachedSchoolLists];
@@ -2060,7 +2214,7 @@ app.get("/api/lists/search", (req, res) => {
     const c = String(city).toLowerCase().trim();
     results = results.filter(l => {
       const parentCity = l.city || "";
-      const schoolSlug = toSlug(l.schoolName);
+      const schoolSlug = getSchoolSlug(l.schoolName);
       const profile = (cachedSchoolProfiles || SCHOOL_PROFILES)[schoolSlug];
       const matchInProfile = profile && profile.location.toLowerCase().includes(c);
       return parentCity.toLowerCase().includes(c) || matchInProfile;
@@ -2084,7 +2238,7 @@ app.get("/api/lists/search", (req, res) => {
 });
 
 // 1.4 API: Intelligent List Ingestion System with Multimodal OCR and PDF Parsing
-app.post("/api/ingest-list", async (req, res) => {
+app.post("/api/ingest-list", scanRateLimiter, verifyBotToken, async (req, res) => {
   const { textList, fileData, fileType, cityName, defaultSchoolName, defaultGrade } = req.body;
   
   const ai = getGeminiClient();
@@ -2105,7 +2259,7 @@ app.post("/api/ingest-list", async (req, res) => {
       ]
     };
     
-    const { schoolList, schoolSlug, gradeSlug, isNewSchool, suggestedProducts } = processIngestedList(parsed, cityName);
+    const { schoolList, schoolSlug, gradeSlug, isNewSchool, suggestedProducts } = await processIngestedList(parsed, cityName);
     return res.json({
       success: true,
       isDemo: true,
@@ -2186,7 +2340,7 @@ Devuelve estrictamente un JSON que coincida exactamente con este esquema y nada 
     }
     
     const parsed = JSON.parse(jsonText.trim());
-    const { schoolList, schoolSlug, gradeSlug, isNewSchool, suggestedProducts } = processIngestedList(parsed, cityName);
+    const { schoolList, schoolSlug, gradeSlug, isNewSchool, suggestedProducts } = await processIngestedList(parsed, cityName);
     
     res.json({
       success: true,
@@ -2206,7 +2360,10 @@ Devuelve estrictamente un JSON que coincida exactamente con este esquema y nada 
 });
 
 // 1.5 API: Get pending system ingestions (schools and product proposals) for admin review
-app.get("/api/pending-ingestions", (req, res) => {
+app.get("/api/pending-ingestions", async (req, res) => {
+  const ingestions = await getPendingIngestions();
+  pendingSchools = ingestions.pendingSchools;
+  pendingProductSuggestions = ingestions.pendingProducts;
   res.json({
     success: true,
     pendingSchools: pendingSchools || [],
@@ -2215,7 +2372,7 @@ app.get("/api/pending-ingestions", (req, res) => {
 });
 
 // 1.6 API: Admin action validation on pending school or product
-app.post("/api/pending-ingestions/action", (req, res) => {
+app.post("/api/pending-ingestions/action", async (req, res) => {
   const { type, id, action } = req.body;
   
   if (!id || !action || !type) {
@@ -2225,32 +2382,26 @@ app.post("/api/pending-ingestions/action", (req, res) => {
   if (type === "SCHOOL") {
     const idx = pendingSchools.findIndex(s => s.id === id);
     if (idx !== -1) {
-      if (action === "APPROVE") {
-        pendingSchools[idx].status = "APPROVED";
-      } else if (action === "REJECT") {
-        pendingSchools[idx].status = "REJECTED";
-        // Remove from cache if rejected
+      const status = action === "APPROVE" ? "APPROVED" : "REJECTED";
+      await updatePendingQueueStatus("SCHOOL", id, status);
+      if (action === "REJECT") {
         const schoolSlug = pendingSchools[idx].slug;
-        if (cachedSchoolProfiles[schoolSlug]) {
-          delete cachedSchoolProfiles[schoolSlug];
-          cachedSchoolLists = cachedSchoolLists.filter(l => toSlug(l.schoolName) !== schoolSlug);
-        }
+        await deleteSchoolProfile(schoolSlug);
+        // Reload profiles and lists
+        cachedSchoolProfiles = await getSchoolProfiles(SCHOOL_PROFILES);
+        cachedSchoolLists = await getSchoolLists(SCHOOL_LISTS_DATA);
       }
-      pendingSchools = pendingSchools.filter(s => s.status === "PENDING" || !s.status);
     }
   } else if (type === "PRODUCT") {
-    const idx = pendingProductSuggestions.findIndex(p => p.id === id);
-    if (idx !== -1) {
-      if (action === "APPROVE") {
-        pendingProductSuggestions[idx].status = "APPROVED";
-      } else if (action === "REJECT") {
-        pendingProductSuggestions[idx].status = "REJECTED";
-      }
-      pendingProductSuggestions = pendingProductSuggestions.filter(p => p.status === "PENDING" || !p.status);
-    }
+    const status = action === "APPROVE" ? "APPROVED" : "REJECTED";
+    await updatePendingQueueStatus("PRODUCT", id, status);
   }
   
-  saveSchoolListsToCache();
+  // Refresh local cache arrays from Firestore
+  const ingestions = await getPendingIngestions();
+  pendingSchools = ingestions.pendingSchools;
+  pendingProductSuggestions = ingestions.pendingProducts;
+  
   res.json({
     success: true,
     message: "¡La cola administrativa se actualizó con éxito!",
@@ -2260,11 +2411,11 @@ app.post("/api/pending-ingestions/action", (req, res) => {
 });
 
 // 1.1 API: Get products with synced/cached prices
-app.get("/api/products", (req, res) => {
+app.get("/api/products", async (req, res) => {
   const currentDay = getTodayDateASTString();
   if (lastSyncTimestamp !== currentDay) {
     console.log(`[PROGRAMACIÓN] Ejecutando sincronización de precios al detectar nueva fecha en petición: ${currentDay}`);
-    triggerMidnightPriceSync();
+    await triggerMidnightPriceSync();
   }
   res.json({
     success: true,
@@ -2274,8 +2425,8 @@ app.get("/api/products", (req, res) => {
 });
 
 // 1.2 API: Force the midnight AST automated pricing refresh
-app.post("/api/force-midnight-sync", (req, res) => {
-  triggerMidnightPriceSync(true);
+app.post("/api/force-midnight-sync", async (req, res) => {
+  await triggerMidnightPriceSync(true);
   res.json({
     success: true,
     message: "Sincronización automatizada de precios forzada con éxito.",
@@ -2312,7 +2463,7 @@ app.get("/api/news", (req, res) => {
 });
 
 // 3. API: AI-powered List Scanner (Gemini-powered text-list to digital-pack converter)
-app.post("/api/scan-list", async (req, res) => {
+app.post("/api/scan-list", scanRateLimiter, verifyBotToken, async (req, res) => {
   const { textList } = req.body;
   if (!textList || typeof textList !== "string") {
     return res.status(400).json({
@@ -2325,7 +2476,9 @@ app.post("/api/scan-list", async (req, res) => {
   if (!ai) {
     // Elegant fallback simulation if no API key is specified
     console.log("No GEMINI_API_KEY detected. Running local fallback matcher.");
-    const simulatedMatches = simulateProductMatching(textList);
+    const simulatedMatches = await simulateProductMatching(textList, cachedProducts);
+    pendingMatchReviews = await getMatchReviews();
+    saveProductsToCache();
     return res.json({
       success: true,
       isDemo: true,
@@ -2391,7 +2544,9 @@ Genera una respuesta JSON estrictamente estructurada que sea un arreglo de objet
   } catch (error: any) {
     console.error("Error running Gemini scanner:", error);
     // Secure fallback matching so the application is robust
-    const simulatedMatches = simulateProductMatching(textList);
+    const simulatedMatches = await simulateProductMatching(textList, cachedProducts);
+    pendingMatchReviews = await getMatchReviews();
+    saveProductsToCache();
     res.json({
       success: true,
       isFallback: true,
@@ -2402,7 +2557,7 @@ Genera una respuesta JSON estrictamente estructurada que sea un arreglo de objet
 });
 
 // 4. API: Live web-grounded price verification across Dominican Supermarkets
-app.post("/api/verify-live-prices", async (req, res) => {
+app.post("/api/verify-live-prices", livePriceRateLimiter, verifyBotToken, async (req, res) => {
   const { productName, originalPrice } = req.body;
   if (!productName) {
     return res.status(400).json({ success: false, error: "Falta el nombre del producto para validar." });
@@ -2612,71 +2767,10 @@ Devuelve los resultados estrictamente estructurados bajo el siguiente esquema JS
   }
 });
 
-// Helper for local matching of product text using the hybrid Levenshtein + token overlap engine
-function simulateProductMatching(text: string): any[] {
-  const items = text.split(/[\n,;•]+/).map(t => t.trim()).filter(Boolean);
-  const result: any[] = [];
 
-  for (const item of items) {
-    let bestProduct = null;
-    let highestScore = 0;
-    let explanation = "Se recomendó este artículo escolar estándar.";
-
-    for (const prod of cachedProducts) {
-      const matchResult = calculateHybridMatchScore(item, prod);
-      if (matchResult.confidence > highestScore) {
-        highestScore = matchResult.confidence;
-        bestProduct = prod;
-        explanation = matchResult.explanation;
-      }
-    }
-
-    // Try extracting numbers representing quantities in item strings (e.g. "5 cuadernos" -> 5)
-    const numMatch = item.match(/(\d+)/);
-    const quantity = numMatch ? parseInt(numMatch[1], 10) : 1;
-    const finalConf = bestProduct ? highestScore : 0.3;
-
-    const matchedId = bestProduct ? bestProduct.id : "prod-01";
-    const matchedName = bestProduct ? bestProduct.name : "Cuaderno de Caligrafía Mascot 96 pág.";
-
-    const matchEntity = {
-      productId: matchedId,
-      searchedName: item,
-      extractedQuantity: quantity,
-      matchConfidence: finalConf,
-      explanation
-    };
-
-    // If the match has intermediate/moderate confidence (0.60 to 0.85), post it to our revision pipeline!
-    if (bestProduct && finalConf >= 0.55 && finalConf < 0.85) {
-      // Avoid duplicate pending items
-      if (!pendingMatchReviews.some(r => r.searchedName === item)) {
-        pendingMatchReviews.push({
-          id: `rev-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          searchedName: item,
-          suggestedProductId: matchedId,
-          suggestedProductName: matchedName,
-          confidence: finalConf,
-          explanation,
-          createdAt: getTodayDateASTString(),
-          status: "PENDING"
-        });
-      }
-    }
-
-    result.push(matchEntity);
-  }
-
-  saveProductsToCache();
-
-  return result.length > 0 ? result : [
-    { productId: "prod-01", searchedName: "Cuadernos escolares", extractedQuantity: 5, matchConfidence: 0.90, explanation: "Vínculo de alta confianza por palabra clave." },
-    { productId: "prod-09", searchedName: "Lápices de grafito", extractedQuantity: 2, matchConfidence: 0.90, explanation: "Vínculo de alta confianza por palabra clave." }
-  ];
-}
 
 // 5. API: Register Price Drop Alerts for specific parents
-app.post("/api/price-alert", (req, res) => {
+app.post("/api/price-alert", alertRateLimiter, verifyBotToken, async (req, res) => {
   const { email, productId, productName, targetPrice, currentPrice } = req.body;
   if (!email || !productId || !targetPrice) {
     return res.status(400).json({ success: false, error: "Parámetros incompletos de alerta." });
@@ -2694,8 +2788,8 @@ app.post("/api/price-alert", (req, res) => {
     createdAt: getTodayDateASTString()
   };
 
-  localPriceAlerts.push(newAlert);
-  saveProductsToCache();
+  await savePriceAlert(newAlert);
+  localPriceAlerts = await getPriceAlerts();
 
   res.json({
     success: true,
@@ -2704,7 +2798,8 @@ app.post("/api/price-alert", (req, res) => {
   });
 });
 
-app.get("/api/price-alerts", (req, res) => {
+app.get("/api/price-alerts", async (req, res) => {
+  localPriceAlerts = await getPriceAlerts();
   res.json({
     success: true,
     alerts: localPriceAlerts
@@ -2788,7 +2883,8 @@ app.get("/api/analytics", (req, res) => {
 });
 
 // 8. API: Get matched lists pipeline for Revision Panel
-app.get("/api/match-reviews", (req, res) => {
+app.get("/api/match-reviews", async (req, res) => {
+  pendingMatchReviews = await getMatchReviews();
   res.json({
     success: true,
     reviews: pendingMatchReviews
@@ -2796,37 +2892,14 @@ app.get("/api/match-reviews", (req, res) => {
 });
 
 // 8.1 API: Act on a match (APPROVE / REJECT / EDIT Link)
-app.post("/api/match-review/action", (req, res) => {
+app.post("/api/match-review/action", async (req, res) => {
   const { id, action, correctedProductId } = req.body;
   if (!id || !action) {
     return res.status(400).json({ success: false, error: "Parámetros incompletos." });
   }
 
-  const reviewIndex = pendingMatchReviews.findIndex(r => r.id === id);
-  if (reviewIndex === -1) {
-    return res.status(404).json({ success: false, error: "Registro no encontrado en pipeline." });
-  }
-
-  const review = pendingMatchReviews[reviewIndex];
-
-  if (action === "APPROVE") {
-    // Approve the IA suggested product association
-    review.status = "APPROVED";
-  } else if (action === "REJECT") {
-    review.status = "REJECTED";
-  } else if (action === "UPDATE" && correctedProductId) {
-    // Update association to verified product
-    const prod = cachedProducts.find(p => p.id === correctedProductId);
-    if (prod) {
-      review.suggestedProductId = prod.id;
-      review.suggestedProductName = prod.name;
-      review.status = "APPROVED_CORRECTED";
-    }
-  }
-
-  // Remove elements that are no longer pending to thin down queue
-  pendingMatchReviews = pendingMatchReviews.filter(r => r.status === "PENDING");
-  saveProductsToCache();
+  // Update association and get refreshed pending list from Firestore
+  pendingMatchReviews = await updateMatchReviewStatus(id, action, correctedProductId);
 
   res.json({
     success: true,

@@ -3,6 +3,7 @@ import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS, SCHOOLS, GRADES, SCHOOL_LISTS
 import { Product, CartItem, SchoolList, SchoolItem, Order } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { AdSenseBanner } from './components/AdSenseBanner';
+import FaqsView from './components/FaqsView';
 import { db, auth, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
 import { collection, addDoc, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -516,57 +517,90 @@ export default function App() {
     let total = 0;
     let count = 0;
 
-    let sirenaSum = 0;
-    let jumboSum = 0;
-    let nacionalSum = 0;
-    let plazalamaSum = 0;
-    let bravoSum = 0;
-    let garridoSum = 0;
-    let oleSum = 0;
-    let carrefourSum = 0;
+    let sirenaSub = 0, sirenaTax = 0;
+    let jumboSub = 0, jumboTax = 0;
+    let nacionalSub = 0, nacionalTax = 0;
+    let plazalamaSub = 0, plazalamaTax = 0;
+    let bravoSub = 0, bravoTax = 0;
+    let garridoSub = 0, garridoTax = 0;
+    let oleSub = 0, oleTax = 0;
+    let carrefourSub = 0, carrefourTax = 0;
 
     activeSchoolList.items.forEach(schoolItem => {
       if (checkedProductIds.includes(schoolItem.productId)) {
         const prod = PRODUCTS.find(p => p.id === schoolItem.productId);
         if (prod) {
-          total += prod.price * schoolItem.quantity;
+          const isExempt = prod.exemptITBIS === true;
+          const itemPrice = prod.price * schoolItem.quantity;
+          total += itemPrice + (isExempt ? 0 : Math.round(itemPrice * 0.18));
           count += schoolItem.quantity;
 
-          sirenaSum += (prod.storePrices?.sirena || prod.price) * schoolItem.quantity;
-          jumboSum += (prod.storePrices?.jumbo || prod.price) * schoolItem.quantity;
-          nacionalSum += (prod.storePrices?.nacional || prod.price) * schoolItem.quantity;
-          plazalamaSum += (prod.storePrices?.plazalama || prod.price) * schoolItem.quantity;
-          bravoSum += (prod.storePrices?.bravo || prod.price) * schoolItem.quantity;
-          garridoSum += (prod.storePrices?.garrido || prod.price) * schoolItem.quantity;
-          oleSum += (prod.storePrices?.ole || prod.price) * schoolItem.quantity;
-          carrefourSum += (prod.storePrices?.carrefour || prod.price) * schoolItem.quantity;
+          const sirenaPrice = (prod.storePrices?.sirena || prod.price) * schoolItem.quantity;
+          sirenaSub += sirenaPrice;
+          sirenaTax += isExempt ? 0 : Math.round(sirenaPrice * 0.18);
+
+          const jumboPrice = (prod.storePrices?.jumbo || prod.price) * schoolItem.quantity;
+          jumboSub += jumboPrice;
+          jumboTax += isExempt ? 0 : Math.round(jumboPrice * 0.18);
+
+          const nacionalPrice = (prod.storePrices?.nacional || prod.price) * schoolItem.quantity;
+          nacionalSub += nacionalPrice;
+          nacionalTax += isExempt ? 0 : Math.round(nacionalPrice * 0.18);
+
+          const plazalamaPrice = (prod.storePrices?.plazalama || prod.price) * schoolItem.quantity;
+          plazalamaSub += plazalamaPrice;
+          plazalamaTax += isExempt ? 0 : Math.round(plazalamaPrice * 0.18);
+
+          const bravoPrice = (prod.storePrices?.bravo || prod.price) * schoolItem.quantity;
+          bravoSub += bravoPrice;
+          bravoTax += isExempt ? 0 : Math.round(bravoPrice * 0.18);
+
+          const garridoPrice = (prod.storePrices?.garrido || prod.price) * schoolItem.quantity;
+          garridoSub += garridoPrice;
+          garridoTax += isExempt ? 0 : Math.round(garridoPrice * 0.18);
+
+          const olePrice = (prod.storePrices?.ole || prod.price) * schoolItem.quantity;
+          oleSub += olePrice;
+          oleTax += isExempt ? 0 : Math.round(olePrice * 0.18);
+
+          const carrefourPrice = (prod.storePrices?.carrefour || prod.price) * schoolItem.quantity;
+          carrefourSub += carrefourPrice;
+          carrefourTax += isExempt ? 0 : Math.round(carrefourPrice * 0.18);
         } else {
           // Support community lists custom items (estimated price)
-          const estPrice = ((schoolItem as any).estimatedPrice || 150);
-          total += estPrice * schoolItem.quantity;
+          const estPrice = ((schoolItem as any).estimatedPrice || 150) * schoolItem.quantity;
+          total += estPrice + Math.round(estPrice * 0.18);
           count += schoolItem.quantity;
 
-          sirenaSum += estPrice * schoolItem.quantity;
-          jumboSum += estPrice * schoolItem.quantity;
-          nacionalSum += estPrice * schoolItem.quantity;
-          plazalamaSum += estPrice * schoolItem.quantity;
-          bravoSum += estPrice * schoolItem.quantity;
-          garridoSum += estPrice * schoolItem.quantity;
-          oleSum += estPrice * schoolItem.quantity;
-          carrefourSum += estPrice * schoolItem.quantity;
+          sirenaSub += estPrice;
+          sirenaTax += Math.round(estPrice * 0.18);
+          jumboSub += estPrice;
+          jumboTax += Math.round(estPrice * 0.18);
+          nacionalSub += estPrice;
+          nacionalTax += Math.round(estPrice * 0.18);
+          plazalamaSub += estPrice;
+          plazalamaTax += Math.round(estPrice * 0.18);
+          bravoSub += estPrice;
+          bravoTax += Math.round(estPrice * 0.18);
+          garridoSub += estPrice;
+          garridoTax += Math.round(estPrice * 0.18);
+          oleSub += estPrice;
+          oleTax += Math.round(estPrice * 0.18);
+          carrefourSub += estPrice;
+          carrefourTax += Math.round(estPrice * 0.18);
         }
       }
     });
 
     const storeCosts = [
-      { id: 'sirena', name: 'La Sirena', logo: '🧜‍♀️', total: Math.round(sirenaSum * 1.18) },
-      { id: 'jumbo', name: 'Jumbo', logo: '🐘', total: Math.round(jumboSum * 1.18) },
-      { id: 'nacional', name: 'S. Nacional', logo: '🛒', total: Math.round(nacionalSum * 1.18) },
-      { id: 'plazalama', name: 'Plaza Lama', logo: '🦙', total: Math.round(plazalamaSum * 1.18) },
-      { id: 'bravo', name: 'S. Bravo', logo: '🍎', total: Math.round(bravoSum * 1.18) },
-      { id: 'garrido', name: 'A. Garrido', logo: '🛍️', total: Math.round(garridoSum * 1.18) },
-      { id: 'ole', name: 'Superm. Olé', logo: '🥥', total: Math.round(oleSum * 1.18) },
-      { id: 'carrefour', name: 'Carrefour RD', logo: '🇨🇵', total: Math.round(carrefourSum * 1.18) }
+      { id: 'sirena', name: 'La Sirena', logo: '🧜‍♀️', total: sirenaSub + sirenaTax },
+      { id: 'jumbo', name: 'Jumbo', logo: '🐘', total: jumboSub + jumboTax },
+      { id: 'nacional', name: 'S. Nacional', logo: '🛒', total: nacionalSub + nacionalTax },
+      { id: 'plazalama', name: 'Plaza Lama', logo: '🦙', total: plazalamaSub + plazalamaTax },
+      { id: 'bravo', name: 'S. Bravo', logo: '🍎', total: bravoSub + bravoTax },
+      { id: 'garrido', name: 'A. Garrido', logo: '🛍️', total: garridoSub + garridoTax },
+      { id: 'ole', name: 'Superm. Olé', logo: '🥥', total: oleSub + oleTax },
+      { id: 'carrefour', name: 'Carrefour RD', logo: '🇨🇵', total: carrefourSub + carrefourTax }
     ].sort((a, b) => a.total - b.total);
 
     return { count, total, storeCosts };
@@ -691,38 +725,81 @@ export default function App() {
 
   // Financial calculations for comparison across stores
   const cartFinancials = useMemo(() => {
-    const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-    
-    // Sirena Total
-    const sirenaSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.sirena || item.product.price) * item.quantity), 0);
-    // Jumbo Total
-    const jumboSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.jumbo || item.product.price) * item.quantity), 0);
-    // Nacional Total
-    const nacionalSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.nacional || item.product.price) * item.quantity), 0);
-    // Plaza Lama Total
-    const plazalamaSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.plazalama || item.product.price) * item.quantity), 0);
-    // Bravo Total
-    const bravoSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.bravo || Math.round(item.product.price * 0.95)) * item.quantity), 0);
-    // Garrido Total
-    const garridoSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.garrido || Math.round(item.product.price * 0.90)) * item.quantity), 0);
-    // Olé Total
-    const oleSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.ole || Math.round(item.product.price * 0.92)) * item.quantity), 0);
-    // Carrefour Total
-    const carrefourSubtotal = cart.reduce((acc, item) => acc + ((item.product.storePrices?.carrefour || Math.round(item.product.price * 1.04)) * item.quantity), 0);
+    let subtotal = 0;
+    let tax = 0;
 
-    const tax = Math.round(subtotal * 0.18);
+    let sirenaSubtotal = 0, sirenaTax = 0;
+    let jumboSubtotal = 0, jumboTax = 0;
+    let nacionalSubtotal = 0, nacionalTax = 0;
+    let plazalamaSubtotal = 0, plazalamaTax = 0;
+    let bravoSubtotal = 0, bravoTax = 0;
+    let garridoSubtotal = 0, garridoTax = 0;
+    let oleSubtotal = 0, oleTax = 0;
+    let carrefourSubtotal = 0, carrefourTax = 0;
+
+    cart.forEach(item => {
+      const qty = item.quantity;
+      const basePrice = item.product.price;
+      const isExempt = item.product.exemptITBIS === true;
+
+      // Base (Reference)
+      const itemSub = basePrice * qty;
+      subtotal += itemSub;
+      tax += isExempt ? 0 : Math.round(itemSub * 0.18);
+
+      // Sirena
+      const sirenaPrice = (item.product.storePrices?.sirena || basePrice) * qty;
+      sirenaSubtotal += sirenaPrice;
+      sirenaTax += isExempt ? 0 : Math.round(sirenaPrice * 0.18);
+
+      // Jumbo
+      const jumboPrice = (item.product.storePrices?.jumbo || basePrice) * qty;
+      jumboSubtotal += jumboPrice;
+      jumboTax += isExempt ? 0 : Math.round(jumboPrice * 0.18);
+
+      // Nacional
+      const nacionalPrice = (item.product.storePrices?.nacional || basePrice) * qty;
+      nacionalSubtotal += nacionalPrice;
+      nacionalTax += isExempt ? 0 : Math.round(nacionalPrice * 0.18);
+
+      // Plaza Lama
+      const plazalamaPrice = (item.product.storePrices?.plazalama || basePrice) * qty;
+      plazalamaSubtotal += plazalamaPrice;
+      plazalamaTax += isExempt ? 0 : Math.round(plazalamaPrice * 0.18);
+
+      // Bravo
+      const bravoPrice = (item.product.storePrices?.bravo || Math.round(basePrice * 0.95)) * qty;
+      bravoSubtotal += bravoPrice;
+      bravoTax += isExempt ? 0 : Math.round(bravoPrice * 0.18);
+
+      // Garrido
+      const garridoPrice = (item.product.storePrices?.garrido || Math.round(basePrice * 0.90)) * qty;
+      garridoSubtotal += garridoPrice;
+      garridoTax += isExempt ? 0 : Math.round(garridoPrice * 0.18);
+
+      // Olé
+      const olePrice = (item.product.storePrices?.ole || Math.round(basePrice * 0.92)) * qty;
+      oleSubtotal += olePrice;
+      oleTax += isExempt ? 0 : Math.round(olePrice * 0.18);
+
+      // Carrefour
+      const carrefourPrice = (item.product.storePrices?.carrefour || Math.round(basePrice * 1.04)) * qty;
+      carrefourSubtotal += carrefourPrice;
+      carrefourTax += isExempt ? 0 : Math.round(carrefourPrice * 0.18);
+    });
+
     const total = subtotal + tax;
 
     // Build the comparative array
     const stores = [
-      { id: 'sirena', name: 'La Sirena', subtotal: sirenaSubtotal, tax: Math.round(sirenaSubtotal * 0.18), total: Math.round(sirenaSubtotal * 1.18), logo: '🧜‍♀️', color: 'bg-yellow-500', textColor: 'text-amber-800' },
-      { id: 'jumbo', name: 'Jumbo', subtotal: jumboSubtotal, tax: Math.round(jumboSubtotal * 0.18), total: Math.round(jumboSubtotal * 1.18), logo: 'Elephant', logoChar: '🐘', color: 'bg-green-600', textColor: 'text-green-800' },
-      { id: 'nacional', name: 'Superm. Nacional', subtotal: nacionalSubtotal, tax: Math.round(nacionalSubtotal * 0.18), total: Math.round(nacionalSubtotal * 1.18), logo: 'Cart', logoChar: '🛒', color: 'bg-blue-600', textColor: 'text-blue-800' },
-      { id: 'plazalama', name: 'Plaza Lama', subtotal: plazalamaSubtotal, tax: Math.round(plazalamaSubtotal * 0.18), total: Math.round(plazalamaSubtotal * 1.18), logo: 'Llama', logoChar: '🦙', color: 'bg-orange-500', textColor: 'text-orange-850' },
-      { id: 'bravo', name: 'Superm. Bravo', subtotal: bravoSubtotal, tax: Math.round(bravoSubtotal * 0.18), total: Math.round(bravoSubtotal * 1.18), logo: 'Apple', logoChar: '🍎', color: 'bg-red-650', textColor: 'text-red-800' },
-      { id: 'garrido', name: 'Almacenes Garrido', subtotal: garridoSubtotal, tax: Math.round(garridoSubtotal * 0.18), total: Math.round(garridoSubtotal * 1.18), logo: 'Bag', logoChar: '🛍️', color: 'bg-indigo-600', textColor: 'text-indigo-850' },
-      { id: 'ole', name: 'Superm. Olé', subtotal: oleSubtotal, tax: Math.round(oleSubtotal * 0.18), total: Math.round(oleSubtotal * 1.18), logo: 'Coconut', logoChar: '🥥', color: 'bg-rose-600', textColor: 'text-rose-800' },
-      { id: 'carrefour', name: 'Carrefour RD', subtotal: carrefourSubtotal, tax: Math.round(carrefourSubtotal * 0.18), total: Math.round(carrefourSubtotal * 1.18), logo: 'Car', logoChar: '🇫🇷', color: 'bg-cyan-600', textColor: 'text-cyan-800' }
+      { id: 'sirena', name: 'La Sirena', subtotal: sirenaSubtotal, tax: sirenaTax, total: sirenaSubtotal + sirenaTax, logo: '🧜‍♀️', color: 'bg-yellow-500', textColor: 'text-amber-800' },
+      { id: 'jumbo', name: 'Jumbo', subtotal: jumboSubtotal, tax: jumboTax, total: jumboSubtotal + jumboTax, logo: 'Elephant', logoChar: '🐘', color: 'bg-green-600', textColor: 'text-green-800' },
+      { id: 'nacional', name: 'Superm. Nacional', subtotal: nacionalSubtotal, tax: nacionalTax, total: nacionalSubtotal + nacionalTax, logo: 'Cart', logoChar: '🛒', color: 'bg-blue-600', textColor: 'text-blue-800' },
+      { id: 'plazalama', name: 'Plaza Lama', subtotal: plazalamaSubtotal, tax: plazalamaTax, total: plazalamaSubtotal + plazalamaTax, logo: 'Llama', logoChar: '🦙', color: 'bg-orange-500', textColor: 'text-orange-850' },
+      { id: 'bravo', name: 'Superm. Bravo', subtotal: bravoSubtotal, tax: bravoTax, total: bravoSubtotal + bravoTax, logo: 'Apple', logoChar: '🍎', color: 'bg-red-600', textColor: 'text-red-800' },
+      { id: 'garrido', name: 'Almacenes Garrido', subtotal: garridoSubtotal, tax: garridoTax, total: garridoSubtotal + garridoTax, logo: 'Bag', logoChar: '🛍️', color: 'bg-indigo-600', textColor: 'text-indigo-850' },
+      { id: 'ole', name: 'Superm. Olé', subtotal: oleSubtotal, tax: oleTax, total: oleSubtotal + oleTax, logo: 'Coconut', logoChar: '🥥', color: 'bg-rose-600', textColor: 'text-rose-800' },
+      { id: 'carrefour', name: 'Carrefour RD', subtotal: carrefourSubtotal, tax: carrefourTax, total: carrefourSubtotal + carrefourTax, logo: 'Car', logoChar: '🇫🇷', color: 'bg-cyan-600', textColor: 'text-cyan-800' }
     ];
 
     // Find cheapest and most expensive
@@ -1043,7 +1120,7 @@ export default function App() {
           {/* Search bar inside header for instant accessibility */}
           <div className="w-full md:w-80 relative hidden lg:block">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center">
-              <Search className="w-4 h-4 text-slate-450" />
+              <Search className="w-4 h-4 text-slate-400" />
             </div>
             <input
               type="text"
@@ -1058,7 +1135,7 @@ export default function App() {
           </div>
 
           {/* Navigation Controls: Premium pill design with hover scaling */}
-          <nav className="flex flex-wrap items-center justify-center gap-1.5 bg-slate-105 p-1 rounded-2xl border border-slate-200/50">
+          <nav className="flex flex-wrap items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200/50">
             <button
               onClick={() => setActiveTab('lists')}
               className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-150 flex items-center gap-1.5 ${activeTab === 'lists' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/20' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}
@@ -1343,13 +1420,13 @@ export default function App() {
                             </div>
 
                             <div className="min-w-0">
-                              <h4 className={`text-sm font-extrabold text-slate-800 truncate transition-colors ${isChecked ? 'text-slate-800' : 'text-slate-650'}`}>
+                              <h4 className={`text-sm font-extrabold text-slate-800 truncate transition-colors ${isChecked ? 'text-slate-800' : 'text-slate-600'}`}>
                                 {schoolItem.name}
                               </h4>
                               <p className="text-[11px] text-slate-400 font-bold mt-1 flex items-center gap-1.5 flex-wrap">
                                 <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 text-[10px]">Marca: {matchedProduct?.brand || 'Oficial'}</span>
                                 {schoolItem.isRequired ? (
-                                  <span className="text-[10px] text-red-650 font-extrabold uppercase bg-red-50 px-1.5 py-0.5 rounded border border-red-100/50">Requerido</span>
+                                  <span className="text-[10px] text-red-600 font-extrabold uppercase bg-red-50 px-1.5 py-0.5 rounded border border-red-100/50">Requerido</span>
                                 ) : (
                                   <span className="text-[10px] text-slate-500 font-extrabold uppercase bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/50">Opcional</span>
                                 )}
@@ -1366,7 +1443,7 @@ export default function App() {
                           <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                             {matchedProduct ? (
                               <div className="text-right flex flex-col items-end">
-                                <span className="text-[10.5px] text-slate-450 font-bold">RD$ {matchedProduct.price} c/u</span>
+                                <span className="text-[10.5px] text-slate-400 font-bold">RD$ {matchedProduct.price} c/u</span>
                                 <span className="text-sm font-black text-slate-900">RD$ {matchedProduct.price * schoolItem.quantity}</span>
                                 <button
                                   type="button"
@@ -1378,7 +1455,7 @@ export default function App() {
                               </div>
                             ) : (
                               <div className="text-right flex flex-col items-end">
-                                <span className="text-[10.5px] text-slate-450 font-bold">RD$ {(schoolItem as any).estimatedPrice || 150} c/u*</span>
+                                <span className="text-[10.5px] text-slate-400 font-bold">RD$ {(schoolItem as any).estimatedPrice || 150} c/u*</span>
                                 <span className="text-sm font-black text-slate-900">RD$ {((schoolItem as any).estimatedPrice || 150) * schoolItem.quantity}</span>
                                 <span className="text-[9px] text-slate-400 font-medium italic mt-1">* Estimado</span>
                               </div>
@@ -1446,7 +1523,7 @@ export default function App() {
                       <p className="text-slate-800 font-bold mt-1.5 text-xs sm:text-sm">
                         Seleccionados: <span className="text-blue-700 font-extrabold text-base">{checkedProductIds.length}</span> de <span className="font-extrabold">{activeSchoolList.items.length} útiles</span> • Total estimado: <span className="bg-blue-50 text-blue-750 font-black px-2 py-1 rounded-lg text-base ml-1">RD$ {schoolPackFinancials.total}</span>
                       </p>
-                      <p className="text-[10px] text-slate-450 mt-2">
+                      <p className="text-[10px] text-slate-400 mt-2">
                         * Desmarca aquellos útiles de la lista que ya poseas en casa antes de agregar al carrito.
                       </p>
                     </div>
@@ -1531,7 +1608,7 @@ export default function App() {
                 </div>
 
                 {/* TEST PRESETS */}
-                <div className="bg-slate-55 p-3.5 rounded-xl border border-slate-150 flex flex-col gap-2">
+                <div className="bg-slate-100 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2">
                   <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
                     <Info className="w-3.5 h-3.5 text-blue-600" />
                     Prueba rápido seleccionando uno de estos ejemplos dominicanos:
@@ -1743,7 +1820,7 @@ export default function App() {
                     return (
                       <div
                         key={prod.id}
-                        className="bg-white rounded-xl border border-slate-205 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md hover:border-blue-400 hover:scale-[1.005] active:scale-99 transition-all duration-200 cursor-pointer group"
+                        className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md hover:border-blue-400 hover:scale-[1.005] active:scale-99 transition-all duration-200 cursor-pointer group"
                         onClick={() => setSelectedProductDetail(prod)}
                       >
                         {/* Product Head: Centered e-commerce style product image */}
@@ -1759,7 +1836,7 @@ export default function App() {
                               Más Vendido
                             </span>
                           )}
-                          <span className="absolute bottom-2 right-2 bg-white/95 backdrop-blur-xs text-slate-800 text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs border border-slate-205">
+                          <span className="absolute bottom-2 right-2 bg-white/95 backdrop-blur-xs text-slate-800 text-[9px] font-black px-1.5 py-0.5 rounded shadow-2xs border border-slate-200">
                             {prod.brand}
                           </span>
                         </div>
@@ -1771,7 +1848,7 @@ export default function App() {
                               <span>{CATEGORIES.find(c => c.id === prod.category)?.name || prod.category}</span>
                               <span className="text-slate-400 font-medium normal-case">{prod.brand}</span>
                             </div>
-                            <h4 className="text-[12px] font-black text-slate-850 leading-snug h-[34px] line-clamp-2">
+                            <h4 className="text-[12px] font-black text-slate-800 leading-snug h-[34px] line-clamp-2">
                               {prod.name}
                             </h4>
                           </div>
@@ -1789,7 +1866,7 @@ export default function App() {
                           </div>
 
                           {/* Expandable/Collapsible Supermarket List Button - Zero bulky height by default! */}
-                          <div className="border border-slate-150 rounded-lg overflow-hidden select-none bg-slate-50/70 hover:bg-slate-50 hover:border-slate-300 transition-all">
+                          <div className="border border-slate-200 rounded-lg overflow-hidden select-none bg-slate-50/70 hover:bg-slate-50 hover:border-slate-300 transition-all">
                             <button
                               type="button"
                               onClick={(e) => {
@@ -1812,7 +1889,7 @@ export default function App() {
 
                             {/* COLLAPSIBLE DETAILS (DESPLIEGUE COMPACTO) */}
                             {isExpanded && (
-                              <div className="border-t border-slate-150 bg-white p-2 flex flex-col gap-1.5 animate-fadeIn">
+                              <div className="border-t border-slate-200 bg-white p-2 flex flex-col gap-1.5 animate-fadeIn">
                                 <div className="flex justify-between items-center text-[8px] font-black text-slate-400 tracking-wider uppercase leading-none pb-1 border-b border-slate-100">
                                   <span>Supermercados RD</span>
                                   <span>Con ITBIS</span>
@@ -1893,78 +1970,7 @@ export default function App() {
 
           {/* TAB 4: HELP & FAQS */}
           {activeTab === 'faqs' && (
-            <div className="flex flex-col gap-6">
-              
-              <div className="bg-white p-6 rounded-2xl border border-slate-200">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-blue-600" />
-                  ¿Cómo funciona útiles.online República Dominicana?
-                </h3>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                  Para facilitar el regreso a clases de tus hijos en R.D. hemos digitalizado el proceso para ahorrarte filas, horas de tráfico y sobrecostos en material de papelería escolar.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex gap-3">
-                    <span className="bg-blue-100 text-blue-700 font-extrabold w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 font-sans">1</span>
-                    <div>
-                      <h5 className="font-extrabold text-slate-800 text-xs">Busca por Colegio</h5>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Elige tu colegio autorizado (La Salle, Loyola, Babeque, Saint George, etc.) y carga la lista oficial de útiles recomendada por los profesores de inmediato.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex gap-3">
-                    <span className="bg-blue-100 text-blue-700 font-extrabold w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 font-sans">2</span>
-                    <div>
-                      <h5 className="font-extrabold text-slate-800 text-xs">Personaliza tu Pack</h5>
-                      <p className="text-xs text-slate-500 mt-1">
-                        ¿Ya tienes sacapuntas, colores del año anterior o mochilas escolares? Desmárcalos de la lista interactiva para que no se sumen a tu cuenta. ¡Compra solo lo que te falta!
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex gap-3">
-                    <span className="bg-blue-100 text-blue-700 font-extrabold w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 font-sans">3</span>
-                    <div>
-                      <h5 className="font-extrabold text-slate-800 text-xs">Escanea con IA</h5>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Si tu escuela no figura o tienes un borrador de útiles, cópialo en nuestro Escáner Inteligente con Gemini AI. Reconocerá y elegirá los artículos a la perfección.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex gap-3">
-                    <span className="bg-blue-100 text-blue-700 font-extrabold w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 font-sans">4</span>
-                    <div>
-                      <h5 className="font-extrabold text-slate-800 text-xs">Recibe a Domicilio</h5>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Recibe el paquete completo empacado con cuidado a domicilio en Santo Domingo (Norte, Sur, Este, Oeste), Santiago, La Vega, San Cristóbal y demás provincias en 24-48 horas.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* FAQ ACCORDION BLOCK */}
-                <h4 className="font-extrabold text-slate-900 text-sm uppercase mt-8 border-t border-slate-100 pt-6">Preguntas Frecuentes</h4>
-                <div className="flex flex-col gap-3 mt-4 text-xs">
-                  <div className="bg-slate-50 border p-3.5 rounded-xl border-slate-150">
-                    <p className="font-bold text-slate-800">¿Cómo pago mi pedido?</p>
-                    <p className="text-slate-500 mt-1 leading-relaxed">Simulamos las órdenes localmente. Te generaremos una orden oficial de reservación escolar en dop, la cual podrás imprimir. El pago y despacho físico es coordinado vía WhatsApp.</p>
-                  </div>
-                  <div className="bg-slate-50 border p-3.5 rounded-xl border-slate-150">
-                    <p className="font-bold text-slate-800">¿Hacen entregas en el interior de República Dominicana?</p>
-                    <p className="text-slate-500 mt-1 leading-relaxed">Sí. Enviamos a todas las provincias de R.D. mediante Caribe Pack, Metro Pac, o transporte motorizado express certificado en el Gran Santo Domingo.</p>
-                  </div>
-                  <div className="bg-slate-50 border p-3.5 rounded-xl border-slate-150">
-                    <p className="font-bold text-slate-800">¿Qué pasa si un útil escolar sale defectuoso o no es el requerido?</p>
-                    <p className="text-slate-500 mt-1 leading-relaxed">Contamos con una política estricta de cambios sin costo adicional durante los primeros 15 días del año escolar.</p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            <FaqsView />
           )}
 
           {/* TAB 4.5: ADMIN INTELLIGENCE & AUDIT LANDING */}
@@ -2009,7 +2015,7 @@ export default function App() {
               </div>
 
               {isAdminLoading ? (
-                <div className="bg-white rounded-2xl p-12 border border-slate-205 text-center flex flex-col items-center justify-center gap-3">
+                <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center flex flex-col items-center justify-center gap-3">
                   <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
                   <span className="text-xs font-bold text-slate-500">Compilando informes de góndolas y logs de búsqueda...</span>
                 </div>
@@ -2021,7 +2027,7 @@ export default function App() {
                     <div className="bg-white p-4 rounded-xl border border-slate-200">
                       <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-widest leading-none block">Alertas de Precios Activas</span>
                       <div className="flex items-baseline gap-2 mt-1.5">
-                        <span className="text-2xl font-black text-slate-850">
+                        <span className="text-2xl font-black text-slate-800">
                           {analyticsData?.alertCount || 0}
                         </span>
                         <span className="text-[10px] text-slate-500 font-bold">Padres suscritos</span>
@@ -2030,7 +2036,7 @@ export default function App() {
                     <div className="bg-white p-4 rounded-xl border border-slate-200">
                       <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-widest leading-none block">Enlaces por Revisar</span>
                       <div className="flex items-baseline gap-2 mt-1.5">
-                        <span className="text-2xl font-black text-slate-850">
+                        <span className="text-2xl font-black text-slate-800">
                           {pendingReviews.length}
                         </span>
                         <span className="text-[10px] text-slate-500 font-bold">En cola de Gemini</span>
@@ -2039,7 +2045,7 @@ export default function App() {
                     <div className="bg-white p-4 rounded-xl border border-slate-200">
                       <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-widest leading-none block">Búsquedas Logueadas</span>
                       <div className="flex items-baseline gap-2 mt-1.5">
-                        <span className="text-2xl font-black text-slate-850">
+                        <span className="text-2xl font-black text-slate-800">
                           {analyticsData?.popularSearches?.reduce((a: number, b: any) => a + b.count, 0) || 0}
                         </span>
                         <span className="text-[10px] text-slate-500 font-bold">Consultas registradas</span>
@@ -2158,7 +2164,7 @@ export default function App() {
                     ) : (
                       <div className="flex flex-col gap-4.5">
                         {pendingReviews.map((rev) => (
-                          <div key={rev.id} className="border border-slate-150 rounded-xl p-4 bg-slate-55/40 hover:bg-slate-50 transition-colors flex flex-col gap-3">
+                          <div key={rev.id} className="border border-slate-200 rounded-xl p-4 bg-slate-100/40 hover:bg-slate-50 transition-colors flex flex-col gap-3">
                             <div className="flex flex-wrap items-start justify-between gap-2.5">
                               <div className="min-w-0 flex-1">
                                 <span className="text-[9px] text-violet-605 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded font-black font-mono">
@@ -2185,13 +2191,13 @@ export default function App() {
                             </div>
 
                             {rev.explanation && (
-                              <p className="bg-white border border-slate-150 p-2.5 rounded-lg text-[9.5px] font-medium leading-relaxed text-slate-500 select-text">
+                              <p className="bg-white border border-slate-200 p-2.5 rounded-lg text-[9.5px] font-medium leading-relaxed text-slate-500 select-text">
                                 💡 <span className="font-extrabold text-slate-600">Comentario del Motor:</span> {rev.explanation}
                               </p>
                             )}
 
                             {/* Decision controls */}
-                            <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center justify-between border-t border-slate-150/60 pt-2.5 mt-1">
+                            <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center justify-between border-t border-slate-200/60 pt-2.5 mt-1">
                               <div className="flex items-center gap-1.5">
                                 <span className="text-[9px] text-slate-400 font-extrabold uppercase">Acción:</span>
                                 <button
@@ -2212,7 +2218,7 @@ export default function App() {
                               <div className="flex items-center gap-1.5 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
                                 <span className="text-[9px] text-slate-400 font-extrabold uppercase">Cartografiar a útil:</span>
                                 <select
-                                  className="bg-white border border-slate-205 rounded-xl text-[9.5px] p-1.5 font-bold outline-none max-w-[200px]"
+                                  className="bg-white border border-slate-200 rounded-xl text-[9.5px] p-1.5 font-bold outline-none max-w-[200px]"
                                   onChange={(e) => {
                                     if (e.target.value) {
                                       handleReviewAction(rev.id, 'UPDATE', e.target.value);
@@ -2260,7 +2266,7 @@ export default function App() {
                     <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                       <div>
                         <span className="text-[10px] text-blue-700 font-extrabold uppercase bg-blue-100 px-3 py-1 rounded-full border border-blue-200">PEDIDO: {order.id}</span>
-                        <h4 className="text-sm font-extrabold text-slate-850 mt-1.5">{order.date}</h4>
+                        <h4 className="text-sm font-extrabold text-slate-800 mt-1.5">{order.date}</h4>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-bold text-slate-500">Monto total:</span>
@@ -2343,10 +2349,10 @@ export default function App() {
                     )}
                     <div className="p-4 flex-1 flex flex-col justify-between gap-2">
                       <div>
-                        <h4 className="text-xs sm:text-[13px] font-black text-slate-905 leading-snug">{art.title}</h4>
+                        <h4 className="text-xs sm:text-[13px] font-black text-slate-900 leading-snug">{art.title}</h4>
                         <p className="text-[11px] text-slate-500 mt-1 line-clamp-3 leading-relaxed">{art.summary}</p>
                       </div>
-                      <div className="flex items-center justify-between text-[10px] text-slate-450 font-bold border-t border-slate-100 pt-2.5 mt-2">
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold border-t border-slate-100 pt-2.5 mt-2">
                         <span className="truncate max-w-[120px]">{art.author}</span>
                         <span className="shrink-0">📅 {art.publishDate}</span>
                       </div>
@@ -2397,15 +2403,15 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
-                              className="text-slate-500 hover:text-slate-850 w-4 h-4 font-bold flex items-center justify-center bg-white rounded shadow-2xs transition-colors text-xs"
+                              className="text-slate-500 hover:text-slate-800 w-4 h-4 font-bold flex items-center justify-center bg-white rounded shadow-2xs transition-colors text-xs"
                             >
                               -
                             </button>
-                            <span className="text-[11px] font-extrabold text-slate-805 w-4 text-center">{item.quantity}</span>
+                            <span className="text-[11px] font-extrabold text-slate-800 w-4 text-center">{item.quantity}</span>
                             <button
                               type="button"
                               onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
-                              className="text-slate-500 hover:text-slate-850 w-4 h-4 font-bold flex items-center justify-center bg-white rounded shadow-2xs transition-colors text-xs"
+                              className="text-slate-500 hover:text-slate-800 w-4 h-4 font-bold flex items-center justify-center bg-white rounded shadow-2xs transition-colors text-xs"
                             >
                               +
                             </button>
@@ -2449,7 +2455,7 @@ export default function App() {
                         const barWidthPercent = Math.max(45, Math.min(100, (store.total / maxTotal) * 100));
 
                         return (
-                          <div key={store.id} className={`p-2.5 rounded-xl border transition-all ${isCheapest ? 'border-green-500 bg-green-50/40 shadow-xs' : 'border-slate-150 bg-slate-50/50'}`}>
+                          <div key={store.id} className={`p-2.5 rounded-xl border transition-all ${isCheapest ? 'border-green-500 bg-green-50/40 shadow-xs' : 'border-slate-200 bg-slate-50/50'}`}>
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5 min-w-0">
                                 <span>{store.logo}</span>
@@ -2460,7 +2466,7 @@ export default function App() {
                                   </span>
                                 )}
                               </span>
-                              <span className="text-xs font-extrabold text-slate-850 font-mono shrink-0">
+                              <span className="text-xs font-extrabold text-slate-800 font-mono shrink-0">
                                 RD$ {store.total.toLocaleString('es-DO')}
                               </span>
                             </div>
@@ -2502,42 +2508,42 @@ export default function App() {
 
                   {/* COMPARATIVE ACTION EXPORT FORM */}
                   <form onSubmit={handleCheckoutSubmit} className="flex flex-col gap-3.5">
-                    <div className="flex items-center gap-1 text-slate-805 uppercase tracking-widest font-extrabold text-[10px]">
+                    <div className="flex items-center gap-1 text-slate-800 uppercase tracking-widest font-extrabold text-[10px]">
                       <span>📋</span>
                       <span>Exportar e Imprimir Comparativa</span>
                     </div>
                     
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-extrabold text-slate-450 uppercase">Nombre para la lista / Alumno</label>
+                      <label className="text-[10px] font-extrabold text-slate-400 uppercase">Nombre para la lista / Alumno</label>
                       <input
                         type="text"
                         required
                         value={deliveryName}
                         onChange={(e) => setDeliveryName(e.target.value)}
                         placeholder="Ej: Lista Primaria Juanito"
-                        className="bg-slate-50 border border-slate-205 rounded-xl px-3 py-2 text-xs font-semibold text-slate-805 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-extrabold text-slate-450 uppercase">Tu Teléfono (WhatsApp para compartir)</label>
+                      <label className="text-[10px] font-extrabold text-slate-400 uppercase">Tu Teléfono (WhatsApp para compartir)</label>
                       <input
                         type="tel"
                         required
                         value={deliveryPhone}
                         onChange={(e) => setDeliveryPhone(e.target.value)}
                         placeholder="Ej: 809-555-1200"
-                        className="bg-slate-50 border border-slate-205 rounded-xl px-3 py-2 text-xs font-semibold text-slate-805 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-extrabold text-slate-450 uppercase">Supermercado Elegido</label>
+                        <label className="text-[10px] font-extrabold text-slate-400 uppercase">Supermercado Elegido</label>
                         <select
                           value={deliveryCity}
                           onChange={(e) => setDeliveryCity(e.target.value)}
-                          className="bg-slate-50 border border-slate-205 rounded-xl px-2 py-2 text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-blue-600 h-[34px] cursor-pointer"
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 h-[34px] cursor-pointer"
                         >
                           <option value="Jumbo">Jumbo (Recomendado)</option>
                           <option value="La Sirena">La Sirena</option>
@@ -2549,13 +2555,13 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] font-extrabold text-slate-450 uppercase">Anotación / Extra</label>
+                        <label className="text-[10px] font-extrabold text-slate-400 uppercase">Anotación / Extra</label>
                         <input
                           type="text"
                           value={deliveryNotes}
                           onChange={(e) => setDeliveryNotes(e.target.value)}
                           placeholder="Ej: Comprar el sábado"
-                          className="bg-slate-50 border border-slate-205 rounded-xl px-3 py-2 text-xs font-semibold text-slate-805 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
+                          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all"
                         />
                       </div>
                     </div>
@@ -2634,12 +2640,12 @@ export default function App() {
           <div>
             <h4 className="text-sm font-extrabold text-white mb-3">🏫 Dirección de Colegios RD</h4>
             <ul className="space-y-2 text-slate-300 font-bold">
-              <li><a href="/colegios/colegio-loyola" className="hover:text-white hover:underline transition-all block">• Colegio Loyola (RD)</a></li>
-              <li><a href="/colegios/carol-morgan" className="hover:text-white hover:underline transition-all block">• Carol Morgan School</a></li>
-              <li><a href="/colegios/babeque" className="hover:text-white hover:underline transition-all block">• Colegio Babeque Sec.</a></li>
-              <li><a href="/colegios/la-salle" className="hover:text-white hover:underline transition-all block">• Colegio De La Salle</a></li>
-              <li><a href="/colegios/saint-george" className="hover:text-white hover:underline transition-all block">• Saint George School</a></li>
-              <li><a href="/colegios/colegio-amador" className="hover:text-white hover:underline transition-all block">• Colegio Amador</a></li>
+              <li><a href="/colegios/colegio-loyola" className="hover:text-white hover:underline transition-all block">🦅 Colegio Loyola</a></li>
+              <li><a href="/colegios/carol-morgan" className="hover:text-white hover:underline transition-all block">🏫 Carol Morgan School</a></li>
+              <li><a href="/colegios/babeque" className="hover:text-white hover:underline transition-all block">⛵ Colegio Babeque Secundaria</a></li>
+              <li><a href="/colegios/la-salle" className="hover:text-white hover:underline transition-all block">⭐ Colegio De La Salle</a></li>
+              <li><a href="/colegios/saint-george" className="hover:text-white hover:underline transition-all block">🐉 Saint George School</a></li>
+              <li><a href="/colegios/colegio-amador" className="hover:text-white hover:underline transition-all block">🎓 Colegio Amador</a></li>
             </ul>
           </div>
 
@@ -2656,14 +2662,22 @@ export default function App() {
           </div>
 
           <div>
-            <h4 className="text-sm font-extrabold text-white mb-3">📍 Localidades & Blog RD</h4>
-            <ul className="space-y-2 text-slate-300 font-bold">
+            <h4 className="text-sm font-extrabold text-white mb-2">📍 Localidades</h4>
+            <ul className="space-y-1.5 text-slate-300 font-bold mb-4">
               <li><a href="/localidad/santo-domingo" className="hover:text-white hover:underline transition-all block">📍 Santo Domingo</a></li>
               <li><a href="/localidad/santiago" className="hover:text-white hover:underline transition-all block">📍 Santiago de los Caballeros</a></li>
-              <li><a href="/blog/guia-regreso-clases-2026-rd" className="hover:text-white hover:underline transition-all block">📖 Guía Regreso a Clases 2026</a></li>
-              <li><a href="/blog/como-ahorrar-compra-utiles-escolares" className="hover:text-white hover:underline transition-all block">💰 Método de Ahorro RD</a></li>
-              <li><a href="/blog/comparativa-precios-sirena-jumbo-rd" className="hover:text-white hover:underline transition-all block">📊 Comparativa: Sirena vs. Jumbo</a></li>
-              <li><a href="/blog/mejores-cuadernos-primaria-mascot-oxford" className="hover:text-white hover:underline transition-all block">📒 Los Mejores Cuadernos RD</a></li>
+              <li><a href="/localidad/la-vega" className="hover:text-white hover:underline transition-all block">📍 Concepción de La Vega</a></li>
+              <li><a href="/localidad/san-francisco-de-macoris" className="hover:text-white hover:underline transition-all block">📍 San Francisco de Macorís</a></li>
+              <li><a href="/localidad/higuey" className="hover:text-white hover:underline transition-all block">📍 Higüey / Punta Cana</a></li>
+            </ul>
+            <h4 className="text-sm font-extrabold text-white mb-2">📰 Artículos del Blog</h4>
+            <ul className="space-y-1.5 text-slate-300 font-bold">
+              <li><a href="/blog/guia-regreso-clases-2026-rd" className="hover:text-white hover:underline transition-all block">📖 Guía Regreso Clases 2026</a></li>
+              <li><a href="/blog/como-ahorrar-compra-utiles-escolares" className="hover:text-white hover:underline transition-all block">💰 Consejos para Ahorrar</a></li>
+              <li><a href="/blog/comparativa-precios-sirena-jumbo-rd" className="hover:text-white hover:underline transition-all block">📊 La Sirena vs. Jumbo</a></li>
+              <li><a href="/blog/mejores-cuadernos-primaria-mascot-oxford" className="hover:text-white hover:underline transition-all block">📒 Mejores Cuadernos RD</a></li>
+              <li><a href="/blog/mejores-marcas-lapices-rd" className="hover:text-white hover:underline transition-all block">✏️ Mejores Lápices de Grafito</a></li>
+              <li><a href="/blog/errores-comunes-al-comprar-la-lista-escolar" className="hover:text-white hover:underline transition-all block">⚠️ Errores al Comprar Lista</a></li>
             </ul>
           </div>
 
@@ -2686,12 +2700,12 @@ export default function App() {
               initial={{ scale: 0.97, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.97, opacity: 0 }}
-              className="bg-white rounded-2xl max-w-[420px] w-full overflow-hidden shadow-2xl relative border border-slate-150 p-5 text-slate-800 flex flex-col gap-3.5 select-none"
+              className="bg-white rounded-2xl max-w-[420px] w-full overflow-hidden shadow-2xl relative border border-slate-200 p-5 text-slate-800 flex flex-col gap-3.5 select-none"
             >
               {/* Close Button */}
               <button
                 onClick={() => setSelectedProductDetail(null)}
-                className="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-550 hover:text-slate-850 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 cursor-pointer"
+                className="absolute top-4 right-4 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 w-7 h-7 rounded-full flex items-center justify-center transition-all z-10 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -2715,7 +2729,7 @@ export default function App() {
                   <span className="text-[8.5px] text-blue-600 font-extrabold uppercase tracking-wider block">
                     {CATEGORIES.find(c => c.id === selectedProductDetail.category)?.name}
                   </span>
-                  <h3 className="text-xs sm:text-[13px] font-black text-slate-905 leading-snug mt-0.5 select-text">
+                  <h3 className="text-xs sm:text-[13px] font-black text-slate-900 leading-snug mt-0.5 select-text">
                     {selectedProductDetail.name}
                   </h3>
                   <div className="flex items-center gap-1.5 mt-1 text-[10px] text-slate-500 font-semibold">
@@ -2740,11 +2754,11 @@ export default function App() {
                 {!isVerifyingPrices && !livePricesResult && (
                   <div className="flex items-center justify-between gap-2.5">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[9.5px] font-black text-slate-850 flex items-center gap-1">
+                      <p className="text-[9.5px] font-black text-slate-800 flex items-center gap-1">
                         <Sparkles className="w-3 h-3 text-blue-600 fill-blue-600/15 shrink-0 animate-pulse" />
                         ¿Verificar precios reales en vivo?
                       </p>
-                      <p className="text-[8.5px] text-slate-450 mt-0.5 leading-snug">
+                      <p className="text-[8.5px] text-slate-400 mt-0.5 leading-snug">
                         Sincroniza precios con Sirena, Jumbo y Bravo gratis.
                       </p>
                     </div>
@@ -2761,7 +2775,7 @@ export default function App() {
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-1.5">
                       <Loader2 className="w-3 h-3 text-blue-600 animate-spin" />
-                      <span className="text-[9px] font-bold text-slate-850">IA rastreando góndolas dominicanas...</span>
+                      <span className="text-[9px] font-bold text-slate-800">IA rastreando góndolas dominicanas...</span>
                     </div>
                     <div className="bg-slate-900 rounded-lg p-1.5 max-h-[44px] overflow-y-auto font-mono text-[7.5px] text-blue-400 leading-normal select-text">
                       {verificationLogs.map((log, i) => (
@@ -2774,7 +2788,7 @@ export default function App() {
                 {livePricesResult?.productId === selectedProductDetail.id && (
                   <div className="flex flex-col gap-1.5 select-text">
                     <div className="bg-emerald-50/60 border border-emerald-100 p-2 rounded text-[9px] leading-relaxed text-slate-600">
-                      <p className="font-extrabold text-emerald-805 flex items-center gap-1 pb-0.5">
+                      <p className="font-extrabold text-emerald-800 flex items-center gap-1 pb-0.5">
                         <span>✓</span> Precios actualizados en vivo
                       </p>
                       {livePricesResult.analysis}
@@ -2830,7 +2844,7 @@ export default function App() {
                 const isPriceDropping = priceChange < 0;
 
                 return (
-                  <div className="border border-slate-150 p-2.5 rounded-xl bg-slate-50/50 flex flex-col gap-2">
+                  <div className="border border-slate-200 p-2.5 rounded-xl bg-slate-50/50 flex flex-col gap-2">
                     <div className="flex items-center justify-between select-none">
                       <span className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider flex items-center gap-1 leading-none">
                         <TrendingDown className={`w-3.5 h-3.5 ${isPriceDropping ? 'text-emerald-500' : 'text-slate-400'}`} />
@@ -2878,7 +2892,7 @@ export default function App() {
                 );
               })()}
 
-              <div className="bg-amber-50/50 border border-amber-150 p-2.5 rounded-xl flex flex-col gap-1.5">
+              <div className="bg-amber-50/50 border border-amber-200 p-2.5 rounded-xl flex flex-col gap-1.5">
                 <div className="flex items-center gap-1 text-[9.5px] font-black text-amber-800 uppercase tracking-wider leading-none">
                   <Bell className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                   Crear alerta de rebaja de precios
@@ -2890,7 +2904,7 @@ export default function App() {
                   <input 
                     type="email" 
                     placeholder="Tu correo de alertas" 
-                    className="bg-white border border-slate-205 text-[9.5px] font-bold rounded-lg px-2.5 py-1.5 flex-1 outline-none focus:ring-1 focus:ring-amber-500"
+                    className="bg-white border border-slate-200 text-[9.5px] font-bold rounded-lg px-2.5 py-1.5 flex-1 outline-none focus:ring-1 focus:ring-amber-500"
                     value={alertEmail}
                     onChange={(e) => setAlertEmail(e.target.value)}
                   />
@@ -2899,7 +2913,7 @@ export default function App() {
                     <input 
                       type="number" 
                       placeholder={`${Math.round(selectedProductDetail.price * 0.90)}`}
-                      className="bg-white border border-slate-205 text-[9.5px] rounded-lg pl-7 pr-1.5 py-1.5 w-[65px] outline-none font-mono font-black text-slate-700 focus:ring-1 focus:ring-amber-500"
+                      className="bg-white border border-slate-200 text-[9.5px] rounded-lg pl-7 pr-1.5 py-1.5 w-[65px] outline-none font-mono font-black text-slate-700 focus:ring-1 focus:ring-amber-500"
                       value={alertTargetPrice}
                       onChange={(e) => setAlertTargetPrice(e.target.value)}
                     />
@@ -2950,7 +2964,7 @@ export default function App() {
                           className={`flex items-center justify-between p-2 rounded-lg border leading-none transition-all select-none ${
                             isCheapest
                               ? 'bg-emerald-50/80 border-emerald-250 text-emerald-950 font-black shadow-3xs'
-                              : 'bg-slate-50/40 border-slate-150 text-slate-600'
+                              : 'bg-slate-50/40 border-slate-200 text-slate-600'
                           }`}
                         >
                           <span className="text-[9.5px] font-bold flex items-center gap-1.5 truncate max-w-[80px]">
@@ -3020,7 +3034,7 @@ export default function App() {
                   Reserva Escolar Confirmada • útiles.online
                 </span>
                 <h3 className="text-xl font-extrabold text-slate-900 mt-2.5">¡Tu orden se registró con éxito!</h3>
-                <p className="text-xs text-slate-450 mt-1">Garantiza el precio de temporada de tus útiles escolares de forma rápida.</p>
+                <p className="text-xs text-slate-400 mt-1">Garantiza el precio de temporada de tus útiles escolares de forma rápida.</p>
               </div>
 
               {/* Invoice Metadata */}
@@ -3034,7 +3048,7 @@ export default function App() {
                     <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Fecha de Emisión</span>
                     <span className="font-bold text-slate-800">{latestSuccessOrder.date}</span>
                   </div>
-                  <div className="col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-150">
+                  <div className="col-span-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <span className="text-[10px] text-blue-700 font-extrabold uppercase tracking-wider block flex items-center gap-1">
                       <MapPin className="w-3 h-3" /> Datos del Envío:
                     </span>
@@ -3053,8 +3067,8 @@ export default function App() {
                 </div>
 
                 {/* Items Invoice list */}
-                <div className="bg-slate-50 p-4.5 rounded-xl border border-slate-150 print:bg-white print:border-black">
-                  <h4 className="text-[10px] font-extrabold text-slate-450 uppercase tracking-widest mb-3 border-b border-slate-205 pb-1.5 flex items-center gap-1.5">
+                <div className="bg-slate-50 p-4.5 rounded-xl border border-slate-200 print:bg-white print:border-black">
+                  <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-blue-600" />
                     Artículos Escolares Solicitados
                   </h4>
@@ -3063,7 +3077,7 @@ export default function App() {
                     {latestSuccessOrder.items.map((item, idx) => (
                       <div key={idx} className="py-2.5 flex justify-between gap-4 font-bold">
                         <span className="min-w-0 truncate text-slate-800">
-                          {item.product.name} <span className="text-slate-450 font-medium">x{item.quantity}</span>
+                          {item.product.name} <span className="text-slate-400 font-medium">x{item.quantity}</span>
                         </span>
                         <span className="text-slate-900 flex-shrink-0">RD$ {item.product.price * item.quantity}</span>
                       </div>
@@ -3098,8 +3112,8 @@ export default function App() {
                 </div>
 
                 {/* Print CTA controls */}
-                <div className="mt-2 flex flex-col sm:flex-row gap-4 justify-between items-center print:hidden bg-slate-50 p-3 rounded-xl border border-slate-150">
-                  <p className="text-[10px] text-slate-450 leading-normal text-center sm:text-left max-w-xs">
+                <div className="mt-2 flex flex-col sm:flex-row gap-4 justify-between items-center print:hidden bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <p className="text-[10px] text-slate-400 leading-normal text-center sm:text-left max-w-xs">
                     * Puedes hacer clic en "Imprimir Factura" para descargar esta reservación en formato PDF o mandarla en papel. Nos comunicaremos contigo por WhatsApp para el envío.
                   </p>
                   
@@ -3190,7 +3204,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setIsNewSchoolText(!isNewSchoolText)}
-                        className="text-[10px] text-blue-650 hover:text-blue-800 font-bold underline"
+                        className="text-[10px] text-blue-600 hover:text-blue-800 font-bold underline"
                       >
                         {isNewSchoolText ? 'Elegir Existente' : 'Escribir Otro'}
                       </button>
@@ -3272,7 +3286,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setFormSearchQuery('')}
-                      className="text-xs font-semibold text-slate-450 hover:text-slate-800 cursor-pointer"
+                      className="text-xs font-semibold text-slate-400 hover:text-slate-800 cursor-pointer"
                     >
                       Limpiar
                     </button>
@@ -3320,7 +3334,7 @@ export default function App() {
                                 onClick={() => {
                                   setFormItemRequired((prev) => ({ ...prev, [prod.id]: !isReq }));
                                 }}
-                                className={`text-[9.5px] font-bold px-2 py-1 rounded-md transition-all ${isReq ? 'bg-red-50 text-red-650 border border-red-100' : 'bg-slate-105 text-slate-500 border border-slate-200'}`}
+                                className={`text-[9.5px] font-bold px-2 py-1 rounded-md transition-all ${isReq ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}
                               >
                                 {isReq ? 'Obligatorio' : 'Opcional'}
                               </button>
@@ -3375,7 +3389,7 @@ export default function App() {
                           <div key={i} className="flex justify-between items-center text-xs bg-slate-50 border border-slate-200/60 p-2 rounded-xl">
                             <span className="font-semibold text-slate-800">{c.quantity}x {c.name}</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-slate-450 font-bold">~ RD$ {c.price * c.quantity}</span>
+                              <span className="text-slate-400 font-bold">~ RD$ {c.price * c.quantity}</span>
                               <button
                                 type="button"
                                 onClick={() => {
@@ -3473,7 +3487,7 @@ export default function App() {
                       type="button"
                       disabled={isSubmittingList}
                       onClick={handlePublishCommunityList}
-                      className="bg-indigo-650 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       {isSubmittingList ? (
                         <>

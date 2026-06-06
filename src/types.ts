@@ -22,6 +22,7 @@ export interface Product {
   brand: string;
   tags?: string[];
   isFeatured?: boolean;
+  exemptITBIS?: boolean;
   storePrices: StorePrices;
   priceHistory?: {
     date: string;
@@ -55,6 +56,8 @@ export interface SchoolList {
   grade: string;
   academicYear: string;
   items: SchoolItem[];
+  city?: string;
+  level?: string;
 }
 
 export interface Order {

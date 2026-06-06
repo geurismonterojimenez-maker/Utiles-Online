@@ -128,6 +128,7 @@ export const PRODUCTS: Product[] = [
     brand: 'Casio',
     tags: ['calculadora', 'casio', 'cientifica', 'matematicas'],
     isFeatured: true,
+    exemptITBIS: true,
     storePrices: { sirena: 1120, jumbo: 1095, nacional: 1190, plazalama: 1150, bravo: 1110, garrido: 1050, ole: 1080, carrefour: 1220 }
   },
   {
@@ -158,6 +159,7 @@ export const PRODUCTS: Product[] = [
     brand: 'Maped',
     tags: ['geometria', 'regla', 'escuadra', 'maped', 'matematicas'],
     isFeatured: false,
+    exemptITBIS: true,
     storePrices: { sirena: 149, jumbo: 155, nacional: 170, plazalama: 165, bravo: 150, garrido: 140, ole: 145, carrefour: 172 }
   },
   {

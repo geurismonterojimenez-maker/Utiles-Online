@@ -190,12 +190,37 @@ service cloud.firestore {
       }
     }
 
+    // 4.6 Price Alerts: Rules for price drop alerts
     match /priceAlerts/{alertId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isValidId(alertId) && isValidPriceAlert(incoming());
+      // Only the alert owner (by matching UID or Email) or an administrator can read a single alert.
+      allow get: if isSignedIn() && (
+        resource.data.uid == request.auth.uid || 
+        resource.data.email == request.auth.token.email || 
+        isAdmin()
+      );
+      
+      // List queries are restricted to administrators or secure owner queries filtering by their own UID.
+      allow list: if isSignedIn() && (
+        isAdmin() || 
+        resource.data.uid == request.auth.uid
+      );
+      
+      // Permit creation of alerts if valid schema. If signed in, enforce matching owner UID.
+      allow create: if isValidId(alertId) && isValidPriceAlert(incoming()) && (
+        (incoming().uid == null) || 
+        (isSignedIn() && incoming().uid == request.auth.uid)
+      );
+      
+      // Only administrators can update alert statuses (e.g. marking as triggered).
       allow update: if isAdmin();
-      allow delete: if isAdmin() || (isSignedIn() && (resource.data.uid == request.auth.uid || resource.data.email == request.auth.token.email));
+      
+      // Owners or administrators can delete the alert.
+      allow delete: if isAdmin() || (
+        isSignedIn() && (
+          resource.data.uid == request.auth.uid || 
+          resource.data.email == request.auth.token.email
+        )
+      );
     }
 
     match /popularProducts/{prodId} {
