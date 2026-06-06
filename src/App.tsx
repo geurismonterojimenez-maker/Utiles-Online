@@ -43,10 +43,35 @@ import {
   BarChart2,
   TrendingDown,
   Bell,
-  Percent
+  Percent,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export default function App() {
+  // Dark Mode State
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
+
+  // Mobile Sticky Anchor Ad state
+  const [showAnchorAd, setShowAnchorAd] = useState<boolean>(true);
+
   // Dynamic products list state synced from the Node.js server
   const [productsList, setProductsList] = useState<any[]>(INITIAL_PRODUCTS);
   const [lastSyncDate, setLastSyncDate] = useState<string>('');
@@ -62,6 +87,41 @@ export default function App() {
   // School List Selection State
   const [selectedSchool, setSelectedSchool] = useState<string>('Colegio Dominicano De La Salle');
   const [selectedGrade, setSelectedGrade] = useState<string>('1ro de Primaria');
+
+  // School list loader state
+  const [isListLoading, setIsListLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsListLoading(true);
+    const timer = setTimeout(() => {
+      setIsListLoading(false);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [selectedSchool, selectedGrade]);
+
+  // Image Upload state for scanner
+  const [scannerImageBase64, setScannerImageBase64] = useState<string | null>(null);
+  const [scannerImageMimeType, setScannerImageMimeType] = useState<string | null>(null);
+  const [scannerMode, setScannerMode] = useState<'text' | 'image'>('text');
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Por favor selecciona un archivo de imagen válido (PNG, JPEG, WebP).", "error");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setScannerImageBase64(base64String);
+      setScannerImageMimeType(file.type);
+      showToast("¡Imagen cargada correctamente! Pulsa el botón de Escaneo Inteligente para analizarla.", "success");
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Firebase auth user
   const [authUser, setAuthUser] = useState<FirebaseUser | null>(null);
@@ -924,8 +984,8 @@ export default function App() {
   // AI LIST SCANNER FLOW
 
   const handleRunAIScan = async () => {
-    if (!scannerInput.trim()) {
-      showToast("Por favor escribe o pega una lista escolar.", "error");
+    if (!scannerInput.trim() && !scannerImageBase64) {
+      showToast("Por favor escribe una lista o sube una imagen de ella.", "error");
       return;
     }
 
@@ -934,10 +994,21 @@ export default function App() {
     setScanResultNotice('');
 
     try {
+      // Get raw base64 data from base64Url (remove metadata prefix)
+      let rawBase64 = "";
+      if (scannerImageBase64) {
+        const commaIndex = scannerImageBase64.indexOf(",");
+        rawBase64 = commaIndex !== -1 ? scannerImageBase64.substring(commaIndex + 1) : scannerImageBase64;
+      }
+
       const response = await fetch('/api/scan-list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ textList: scannerInput })
+        body: JSON.stringify({ 
+          textList: scannerInput,
+          image: rawBase64 || undefined,
+          mimeType: scannerImageMimeType || undefined
+        })
       });
 
       const data = await response.json();
@@ -1135,7 +1206,7 @@ export default function App() {
           </div>
 
           {/* Navigation Controls: Premium pill design with hover scaling */}
-          <nav className="flex flex-wrap items-center justify-center gap-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200/50">
+          <nav className="flex flex-nowrap items-center gap-1.5 bg-slate-105 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-x-auto max-w-full scrollbar-none">
             <button
               onClick={() => setActiveTab('lists')}
               className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-150 flex items-center gap-1.5 ${activeTab === 'lists' ? 'bg-white text-blue-700 shadow-sm border border-slate-200/20' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}
@@ -1180,6 +1251,23 @@ export default function App() {
                 Cotizaciones ({orders.length})
               </button>
             )}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-150 flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/50 dark:text-slate-350 dark:hover:text-white dark:hover:bg-slate-800 cursor-pointer"
+              title="Alternar Modo Oscuro / Claro"
+            >
+              {darkMode ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
+                  <span>Claro</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Oscuro</span>
+                </>
+              )}
+            </button>
           </nav>
         </div>
       </header>
@@ -1323,36 +1411,82 @@ export default function App() {
               </div>
 
               {/* LIST DETAILS INVOICE-STYLE */}
-              {activeSchoolList ? (
+              {isListLoading ? (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 flex flex-col gap-4 animate-fadeIn">
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-4 bg-slate-200 rounded-md skeleton-shimmer"></div>
+                    <div className="h-6 w-64 bg-slate-200 rounded-md skeleton-shimmer"></div>
+                  </div>
+                  <div className="divide-y divide-slate-100 mt-2">
+                    {[1, 2, 3, 4].map((n) => (
+                      <div key={n} className="py-4 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                          <div className="w-6 h-6 bg-slate-200 rounded-lg skeleton-shimmer shrink-0"></div>
+                          <div className="w-8 h-8 bg-slate-200 rounded-xl skeleton-shimmer shrink-0"></div>
+                          <div className="flex-1 flex flex-col gap-2">
+                            <div className="h-3 w-2/3 bg-slate-200 rounded-md skeleton-shimmer"></div>
+                            <div className="h-2.5 w-1/3 bg-slate-200 rounded-md skeleton-shimmer"></div>
+                          </div>
+                        </div>
+                        <div className="h-6 w-16 bg-slate-200 rounded-lg skeleton-shimmer"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : activeSchoolList ? (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                   
                   {/* Header list details */}
-                  <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {(activeSchoolList as any).isOfficial ? (
-                          <span className="bg-emerald-650 text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase flex items-center gap-1">
-                            <Check className="w-3 h-3 stroke-[3]" /> Lista Oficial RD
-                          </span>
-                        ) : (
-                          <span className="bg-blue-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase flex items-center gap-1">
-                            <Sparkles className="w-3 h-3 text-amber-300" /> Lista Colaborada
-                          </span>
-                        )}
-                        <span className="text-xs text-slate-400 font-bold">Año Lectivo {activeSchoolList.academicYear}</span>
+                  <div className="bg-slate-50 dark:bg-slate-900 px-6 py-4.5 border-b border-slate-100 dark:border-slate-800 flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {(activeSchoolList as any).isOfficial ? (
+                            <span className="bg-emerald-650 text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase flex items-center gap-1">
+                              <Check className="w-3 h-3 stroke-[3]" /> Lista Oficial RD
+                            </span>
+                          ) : (
+                            <span className="bg-blue-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-amber-300" /> Lista Colaborada
+                            </span>
+                          )}
+                          <span className="text-xs text-slate-400 font-bold">Año Lectivo {activeSchoolList.academicYear}</span>
+                        </div>
+                        <h3 className="text-lg font-extrabold text-slate-900 dark:text-white mt-1">{activeSchoolList.schoolName}</h3>
+                        <p className="text-xs text-slate-500 font-semibold mt-0.5">Grado: <span className="text-blue-600">{activeSchoolList.grade}</span></p>
                       </div>
-                      <h3 className="text-lg font-extrabold text-slate-900 mt-1">{activeSchoolList.schoolName}</h3>
-                      <p className="text-xs text-slate-500 font-semibold mt-0.5">Grado: <span className="text-blue-600">{activeSchoolList.grade}</span></p>
+
+                      <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end">
+                        <button
+                          type="button"
+                          onClick={handleToggleAllSchoolItems}
+                          className="text-xs font-bold text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white bg-slate-150 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-3.5 py-2 rounded-xl transition-all cursor-pointer border border-slate-200/40 dark:border-slate-700/60"
+                        >
+                          {checkedProductIds.length === activeSchoolList.items.length ? "Desmarcar Todos" : "Marcar Todos"}
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 self-stretch sm:self-auto">
-                      <button
-                        onClick={handleToggleAllSchoolItems}
-                        className="text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-150 hover:bg-slate-200 px-3 py-2 rounded-xl transition-all"
-                      >
-                        {checkedProductIds.length === activeSchoolList.items.length ? "Desmarcar Todos" : "Marcar Todos"}
-                      </button>
-                    </div>
+                    {/* Progress tracking section */}
+                    {(() => {
+                      const checkedItemsCount = activeSchoolList.items.filter(item => checkedProductIds.includes(item.productId)).length;
+                      const totalItemsCount = activeSchoolList.items.length;
+                      const progressPct = totalItemsCount > 0 ? Math.round((checkedItemsCount / totalItemsCount) * 100) : 0;
+                      return (
+                        <div className="w-full bg-slate-100/50 dark:bg-slate-950/40 rounded-xl p-3 border border-slate-200/65 dark:border-slate-800">
+                          <div className="flex justify-between items-center text-[10.5px] font-extrabold text-slate-600 dark:text-slate-350 mb-1.5 uppercase tracking-wide">
+                            <span>Progreso de Lista: {checkedItemsCount} de {totalItemsCount} útiles</span>
+                            <span className="text-blue-600 dark:text-blue-400">{progressPct}%</span>
+                          </div>
+                          <div className="w-full bg-slate-200/70 dark:bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
+                            <div 
+                              className="bg-blue-600 dark:bg-blue-500 h-full rounded-full transition-all duration-350"
+                              style={{ width: `${progressPct}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Contributor appreciation bar for community lists */}
@@ -1419,7 +1553,18 @@ export default function App() {
                               {schoolItem.quantity}x
                             </div>
 
-                            <div className="min-w-0">
+                            {matchedProduct && (
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-white p-0.5 border border-slate-200 shrink-0 flex items-center justify-center">
+                                <img
+                                  src={matchedProduct.image}
+                                  alt={matchedProduct.name}
+                                  referrerPolicy="no-referrer"
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                              </div>
+                            )}
+
+                            <div className="min-w-0 flex-1">
                               <h4 className={`text-sm font-extrabold text-slate-800 truncate transition-colors ${isChecked ? 'text-slate-800' : 'text-slate-600'}`}>
                                 {schoolItem.name}
                               </h4>
@@ -1607,37 +1752,118 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* TEST PRESETS */}
-                <div className="bg-slate-100 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5 text-blue-600" />
-                    Prueba rápido seleccionando uno de estos ejemplos dominicanos:
-                  </span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {PRESET_LIST_EXTRACTS.map((preset, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setScannerInput(preset.text)}
-                        className="bg-white hover:bg-slate-100 text-slate-700 hover:text-blue-700 border border-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0"
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
+                {/* Mode Selector */}
+                <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200/50 dark:border-slate-700/50 max-w-xs self-start">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScannerMode('text');
+                      setScannerImageBase64(null);
+                      setScannerImageMimeType(null);
+                    }}
+                    className={`flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      scannerMode === 'text'
+                        ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-850 dark:hover:text-white'
+                    }`}
+                  >
+                    <span>✍️ Escribir Texto</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScannerMode('image');
+                      setScannerInput('');
+                    }}
+                    className={`flex-1 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      scannerMode === 'image'
+                        ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-400 shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-850 dark:hover:text-white'
+                    }`}
+                  >
+                    <span>📸 Subir Foto/Imagen</span>
+                  </button>
                 </div>
 
-                {/* TEXT AREA */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pega aquí el escrito o texto de tu lista escolar</label>
-                  <textarea
-                    rows={6}
-                    value={scannerInput}
-                    onChange={(e) => setScannerInput(e.target.value)}
-                    placeholder="Ej: 3 cuadernos Mascot, una caja de lapices de 24 colores, juego de escuadras Maped..."
-                    className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white leading-relaxed resize-none"
-                  ></textarea>
-                </div>
+                {scannerMode === 'text' ? (
+                  <>
+                    {/* TEST PRESETS */}
+                    <div className="bg-slate-100 dark:bg-slate-800 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                        <Info className="w-3.5 h-3.5 text-blue-600" />
+                        Prueba rápido seleccionando uno de estos ejemplos dominicanos:
+                      </span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {PRESET_LIST_EXTRACTS.map((preset, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setScannerInput(preset.text)}
+                            className="bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-350 hover:text-blue-700 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-xs shrink-0 cursor-pointer"
+                          >
+                            {preset.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* TEXT AREA */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Pega aquí el escrito o texto de tu lista escolar</label>
+                      <textarea
+                        rows={6}
+                        value={scannerInput}
+                        onChange={(e) => setScannerInput(e.target.value)}
+                        placeholder="Ej: 3 cuadernos Mascot, una caja de lapices de 24 colores, juego de escuadras Maped..."
+                        className="bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-xl p-4 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white dark:focus:bg-slate-900 leading-relaxed resize-none"
+                      ></textarea>
+                    </div>
+                  </>
+                ) : (
+                  /* IMAGE UPLOAD ZONE */
+                  <div className="flex flex-col gap-3">
+                    <label className="text-xs font-bold text-slate-505 uppercase tracking-wide">Sube la foto de la lista de útiles</label>
+                    
+                    {!scannerImageBase64 ? (
+                      <label className="border-2 border-dashed border-slate-305 dark:border-slate-700 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-blue-500 hover:bg-slate-50/50 dark:hover:bg-slate-850/30 transition-all text-center">
+                        <div className="bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 p-4 rounded-full">
+                          <Sparkles className="w-6 h-6 animate-pulse text-orange-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-extrabold text-slate-800 dark:text-slate-100">Haz clic para seleccionar o arrastra la foto de tu lista</p>
+                          <p className="text-[10px] text-slate-400 font-semibold mt-1">Formatos soportados: PNG, JPG, JPEG, WebP. Máximo 10MB.</p>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      <div className="flex flex-col gap-3 p-4 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <div className="relative max-w-sm mx-auto rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-2">
+                          <img src={scannerImageBase64} alt="Lista escolar cargada" className="max-h-64 object-contain rounded-lg" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setScannerImageBase64(null);
+                              setScannerImageMimeType(null);
+                            }}
+                            className="absolute top-2 right-2 bg-slate-900/80 hover:bg-red-600 text-white rounded-full p-1.5 transition-all shadow-md cursor-pointer"
+                            title="Quitar imagen"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Foto de lista escolar seleccionada</p>
+                          <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Gemini extraerá automáticamente los útiles desde esta imagen.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* SUBMIT BUTTON */}
                 <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200">
@@ -1666,7 +1892,28 @@ export default function App() {
               </div>
 
               {/* LIST SCANNED RESULTS */}
-              {scannerMatches.length > 0 && (
+              {isScanning ? (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 flex flex-col gap-4 animate-fadeIn">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full bg-slate-200 skeleton-shimmer"></div>
+                    <div className="h-4 w-48 bg-slate-200 rounded-md skeleton-shimmer"></div>
+                  </div>
+                  <div className="divide-y divide-slate-100 mt-2">
+                    {[1, 2, 3].map((n) => (
+                      <div key={n} className="py-4 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                          <div className="w-12 h-12 bg-slate-200 rounded-xl skeleton-shimmer shrink-0"></div>
+                          <div className="flex-1 flex flex-col gap-2">
+                            <div className="h-3 w-3/4 bg-slate-200 rounded-md skeleton-shimmer"></div>
+                            <div className="h-2.5 w-1/2 bg-slate-200 rounded-md skeleton-shimmer"></div>
+                          </div>
+                        </div>
+                        <div className="h-8 w-20 bg-slate-200 rounded-lg skeleton-shimmer"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : scannerMatches.length > 0 && (
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                   <div className="bg-slate-50 px-6 py-4.5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
@@ -1718,15 +1965,25 @@ export default function App() {
                               </div>
                               
                               {matchedItem ? (
-                                <div className="mt-2 text-left bg-blue-50/30 p-2.5 rounded-lg border border-blue-100/60 max-w-lg">
-                                  <h4 className="text-xs font-extrabold text-blue-800 flex items-center gap-1.5">
-                                    <CheckCircle className="w-3.5 h-3.5 text-blue-600" />
-                                    {matchedItem.name}
-                                  </h4>
-                                  <p className="text-[11px] text-slate-500 mt-1 italic">{match.explanation}</p>
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-[10px] bg-white text-blue-700 border border-blue-100 px-1.5 py-0.2 rounded-md font-extrabold">Confianza de IA: {Math.round(match.matchConfidence * 100)}%</span>
-                                    <span className="text-[10px] text-slate-400 font-medium">Marca: {matchedItem.brand}</span>
+                                <div className="mt-2 text-left bg-blue-50/30 p-2.5 rounded-lg border border-blue-100/60 max-w-lg flex gap-3">
+                                  <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-white p-1 border border-slate-200 shrink-0 flex items-center justify-center">
+                                    <img
+                                      src={matchedItem.image}
+                                      alt={matchedItem.name}
+                                      referrerPolicy="no-referrer"
+                                      className="max-w-full max-h-full object-contain"
+                                    />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="text-xs font-extrabold text-blue-800 flex items-center gap-1.5">
+                                      <CheckCircle className="w-3.5 h-3.5 text-blue-600" />
+                                      {matchedItem.name}
+                                    </h4>
+                                    <p className="text-[11px] text-slate-500 mt-1 italic">{match.explanation}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <span className="text-[10px] bg-white text-blue-700 border border-blue-100 px-1.5 py-0.2 rounded-md font-extrabold">Confianza de IA: {Math.round(match.matchConfidence * 100)}%</span>
+                                      <span className="text-[10px] text-slate-400 font-medium">Marca: {matchedItem.brand}</span>
+                                    </div>
                                   </div>
                                 </div>
                               ) : (
@@ -1801,7 +2058,7 @@ export default function App() {
               {/* PRODUCT CARDS LIST */}
               {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4.5">
-                  {filteredProducts.map(prod => {
+                  {filteredProducts.map((prod, index) => {
                     const storePricesList = [
                       { name: 'La Sirena', logo: '🧜‍♀️', price: prod.storePrices?.sirena || prod.price },
                       { name: 'Jumbo', logo: '🐘', price: prod.storePrices?.jumbo || prod.price },
@@ -1818,11 +2075,11 @@ export default function App() {
                     const isExpanded = !!expandedProductPrices[prod.id];
 
                     return (
-                      <div
-                        key={prod.id}
-                        className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md hover:border-blue-400 hover:scale-[1.005] active:scale-99 transition-all duration-200 cursor-pointer group"
-                        onClick={() => setSelectedProductDetail(prod)}
-                      >
+                      <React.Fragment key={prod.id}>
+                        <div
+                          className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md hover:border-blue-400 hover:scale-[1.005] active:scale-99 transition-all duration-200 cursor-pointer group"
+                          onClick={() => setSelectedProductDetail(prod)}
+                        >
                         {/* Product Head: Centered e-commerce style product image */}
                         <div className="relative h-24 sm:h-28 w-full bg-white p-2 overflow-hidden border-b border-slate-100 flex items-center justify-center">
                           <img
@@ -1950,6 +2207,16 @@ export default function App() {
                         </div>
 
                       </div>
+                      {(index + 1) % 8 === 0 && (
+                        <div className="col-span-1 sm:col-span-2 md:col-span-3">
+                          <AdSenseBanner
+                            slot={`infeed-${index}`}
+                            format="horizontal"
+                            label="Anuncio Patrocinado - Catálogo"
+                          />
+                        </div>
+                      )}
+                    </React.Fragment>
                     );
                   })}
                 </div>
@@ -2691,6 +2958,28 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Mobile Sticky Anchor Ad */}
+      {showAnchorAd && (
+        <div className="fixed bottom-0 inset-x-0 z-40 bg-slate-900 border-t border-slate-700 p-2 sm:hidden flex flex-col shadow-lg">
+          <div className="flex items-center justify-between px-2 pb-1 text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+            <span>📢 Patrocinado - Móvil</span>
+            <button
+              onClick={() => setShowAnchorAd(false)}
+              className="text-slate-400 hover:text-white bg-slate-800 rounded-full p-1"
+              title="Cerrar publicidad"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+          <AdSenseBanner
+            slot="mobile-anchor-ad"
+            format="horizontal"
+            className="my-0"
+            label="Anuncio Móvil Anclado"
+          />
+        </div>
+      )}
 
       {/* DETAIL DIALOG MODAL / POP-UP */}
       <AnimatePresence>

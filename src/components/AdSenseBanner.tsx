@@ -47,7 +47,7 @@ export const AdSenseBanner: React.FC<AdSenseBannerProps> = ({
         <ins
           className="adsbygoogle"
           style={style || { display: 'block', minWidth: '250px', width: '100%', minHeight: format === 'rectangle' ? '190px' : '90px' }}
-          data-ad-client="ca-pub-9482819857182281"
+          data-ad-client={import.meta.env.VITE_ADSENSE_CLIENT_ID || "ca-pub-9482819857182281"}
           data-ad-slot={slot}
           data-ad-format={format}
           data-full-width-responsive={responsive}

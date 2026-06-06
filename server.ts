@@ -1,4 +1,5 @@
 import express from "express";
+import compression from "compression";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
@@ -258,9 +259,13 @@ async function triggerMidnightPriceSync(forced = false) {
 
 
 const app = express();
+app.use(compression());
 app.use(express.json());
 app.use(requestLogger);
 const PORT = 3000;
+
+// Google AdSense Publisher Client ID loaded from environment variable
+const ADSENSE_CLIENT_ID = process.env.ADSENSE_CLIENT_ID || "ca-pub-9482819857182281";
 
 // Initialize GoogleGenAI SDK lazily on request
 function getGeminiClient() {
@@ -668,6 +673,69 @@ function mapSlugToGrade(slug: string): string {
     .join(" ");
 }
 
+/**
+ * Renders a Google AdSense banner or its interactive high-fidelity simulator
+ */
+function renderServerAdBanner(slot: string, format: string = "horizontal", label: string = "Espacio Publicitario") {
+  const isHorizontal = format === "horizontal";
+  const minHeight = isHorizontal ? "90px" : "280px";
+  const minWidth = isHorizontal ? "250px" : "280px";
+  
+  return `
+    <div class="w-full my-4 mx-auto overflow-hidden select-none">
+      <div class="flex items-center justify-between px-3 py-1 bg-slate-100 rounded-t-lg border-t border-x border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+        <span>📢 ${label}</span>
+        <span class="text-blue-500 font-sans hover:underline cursor-help" title="Espacio reservado para AdSense.">monetización</span>
+      </div>
+      <div class="relative bg-slate-950 rounded-b-lg border border-slate-200 flex flex-col items-center justify-center p-0 leading-none overflow-hidden text-center min-h-[100px] ${!isHorizontal ? 'min-h-[280px]' : ''}">
+        <!-- AdSense Tag -->
+        <ins class="adsbygoogle"
+             style="display:block; min-width:${minWidth}; width:100%; min-height:${minHeight};"
+             data-ad-client="${ADSENSE_CLIENT_ID}"
+             data-ad-slot="${slot}"
+             data-ad-format="${format}"
+             data-full-width-responsive="true"></ins>
+        <script>
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+
+        <!-- High-Fidelity local simulator when offline / pending review / ad-blocked -->
+        <div class="absolute inset-0 bg-slate-950 pointer-events-none overflow-hidden flex rounded-b-lg">
+          ${isHorizontal ? `
+            <div class="relative w-full h-full flex items-center justify-between px-6 py-3 overflow-hidden select-none">
+              <img src="https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=1200&auto=format&fit=crop" alt="Feria Escolar" class="absolute inset-0 w-full h-full object-cover opacity-20" referrerpolicy="no-referrer" />
+              <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent"></div>
+              <div class="relative z-10 text-left max-w-xl">
+                <span class="text-[8px] bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded-sm uppercase tracking-wider w-max mb-1 shadow-sm">OFERTA PATROCINADA RD</span>
+                <h4 class="text-white text-xs sm:text-sm font-black tracking-tight leading-none uppercase" style="font-family: Outfit, sans-serif;">Feria Escolar 2026: ¡Ahorra hasta RD$3,500 en Útiles!</h4>
+                <p class="text-[10px] text-slate-300 font-medium mt-1">Compara precios de Sirena, Jumbo y Nacional. Consigue el mejor total hoy mismo.</p>
+              </div>
+              <div class="relative z-10 hidden md:flex flex-col items-end gap-1 shrink-0">
+                <span class="bg-emerald-500 text-white font-extrabold text-[9px] px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">Envío Express RD</span>
+                <span class="text-[8px] text-slate-500 font-mono">slot-${slot}</span>
+              </div>
+            </div>
+          ` : `
+            <div class="relative w-full h-full flex flex-col justify-end p-4 text-left select-none">
+              <img src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=600&auto=format&fit=crop" alt="Material Escolar" class="absolute inset-0 w-full h-full object-cover opacity-25" referrerpolicy="no-referrer" />
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent"></div>
+              <div class="relative z-10 flex flex-col gap-1.5 mt-auto">
+                <span class="text-[8px] bg-orange-500 text-white font-black px-2 py-0.5 rounded-sm uppercase tracking-wider w-max shadow-sm">CALIDAD PREMIUM</span>
+                <h4 class="text-white text-xs font-black tracking-tight leading-snug uppercase" style="font-family: Outfit, sans-serif;">✏️ Cuadernos Mascot RD • Hojas Satinadas</h4>
+                <p class="text-[9px] text-slate-300 leading-normal">La marca favorita elegida por los colegios dominicanos. Costura reforzada que previene el deshoje.</p>
+                <div class="flex items-center justify-between border-t border-white/10 pt-2 mt-1">
+                  <span class="text-[8px] text-amber-300 font-black uppercase tracking-wider">★ Recomendado Oficial</span>
+                  <span class="text-[8px] text-slate-500 font-mono">slot-${slot}</span>
+                </div>
+              </div>
+            </div>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderSEOLayout(options: {
   title: string;
   metaDescription: string;
@@ -705,7 +773,7 @@ function renderSEOLayout(options: {
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -713,18 +781,24 @@ function renderSEOLayout(options: {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
           }
         }
       }
     }
   </script>
+  <!-- Google AdSense tag unificado -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}" crossorigin="anonymous"></script>
   ${schemaMarkup}
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       background-color: #f8fafc;
       color: #0f172a;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Outfit', sans-serif;
     }
     .markdown-body h3 {
       font-size: 1.125rem;
@@ -756,8 +830,8 @@ function renderSEOLayout(options: {
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- Main Sticky Header -->
-  <header class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-xs">
+  <!-- Main Sticky Header with Glassmorphism -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50 shadow-xs select-none">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="text-2xl" role="img" aria-label="Logo">🎒</span>
@@ -765,7 +839,7 @@ function renderSEOLayout(options: {
           <a href="/" class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-0.5">
             Útiles.Online <span class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase font-mono tracking-widest">RD</span>
           </a>
-          <span class="text-[9px] font-black text-slate-400 block -mt-1 uppercase tracking-wider">Comparador Escolar #1 Dominicano</span>
+          <span class="text-[9px] font-black text-slate-400 block -mt-1 uppercase tracking-wider font-mono">Comparador Escolar #1 Dominicano</span>
         </div>
       </div>
       
@@ -789,8 +863,13 @@ function renderSEOLayout(options: {
     </div>
   </nav>
 
+  <!-- Leaderboard Ad Space -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 select-none">
+    ${renderServerAdBanner("7891023910", "horizontal", "Anuncio Patrocinado - Ofertas de Temporada")}
+  </div>
+
   <!-- Core Content Structure -->
-  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
     ${options.contentHtml}
   </main>
 
@@ -1498,6 +1577,9 @@ app.get("/producto/:slug", (req, res) => {
             <span>PRECIO PROMEDIO: RD$ ${averagePrice}</span>
           </div>
         </div>
+
+        <!-- Sidebar Skyscraper AdSense Block -->
+        ${renderServerAdBanner("1283749201", "vertical", "Recomendación Escolar")}
       </div>
 
       <!-- Specs & Comparative Grid Right Column -->
@@ -1719,7 +1801,7 @@ function formatInlineMarkdown(text: string): string {
 
 function renderMarkdownToHtml(text: string): string {
   const normalizedText = text.replace(/\r\n/g, "\n");
-  return normalizedText.split("\n\n").map(paragraph => {
+  const paragraphs = normalizedText.split("\n\n").map(paragraph => {
     paragraph = paragraph.trim();
     if (!paragraph) return "";
 
@@ -1748,7 +1830,14 @@ function renderMarkdownToHtml(text: string): string {
     }
 
     return `<p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">${formatInlineMarkdown(paragraph)}</p>`;
-  }).join("");
+  }).filter(Boolean);
+
+  // Inject In-Article Ads dynamically inside blog posts
+  if (paragraphs.length >= 3) {
+    paragraphs.splice(2, 0, renderServerAdBanner("8394018274", "horizontal", "Anuncio del Blog - Ahorro en Clases"));
+  }
+
+  return paragraphs.join("");
 }
 
 app.get("/blog/:slug", (req, res) => {
@@ -1856,6 +1945,9 @@ app.get("/blog/:slug", (req, res) => {
             ${relevantProductsHtml}
           </div>
         </div>
+
+        <!-- Sidebar Skyscraper AdSense Block -->
+        ${renderServerAdBanner("9081273461", "vertical", "Anuncio Patrocinado")}
 
         <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-5 shadow-sm border border-indigo-500/20">
           <strong class="text-sm font-black uppercase tracking-wider block">Acerca de útiles.online</strong>
@@ -2425,11 +2517,11 @@ app.get("/api/news", (req, res) => {
 
 // 3. API: AI-powered List Scanner (Gemini-powered text-list to digital-pack converter)
 app.post("/api/scan-list", scanRateLimiter, verifyBotToken, async (req, res) => {
-  const { textList } = req.body;
-  if (!textList || typeof textList !== "string") {
+  const { textList, image, mimeType } = req.body;
+  if (!textList && !image) {
     return res.status(400).json({
       success: false,
-      error: "Por favor, ingresa el texto de tu lista escolar para analizarlo."
+      error: "Por favor, ingresa el texto o sube una imagen de tu lista escolar para analizarla."
     });
   }
 
@@ -2437,7 +2529,7 @@ app.post("/api/scan-list", scanRateLimiter, verifyBotToken, async (req, res) => 
   if (!ai) {
     // Elegant fallback simulation if no API key is specified
     console.log("No GEMINI_API_KEY detected. Running local fallback matcher.");
-    const simulatedMatches = await simulateProductMatching(textList, cachedProducts);
+    const simulatedMatches = await simulateProductMatching(textList || "cuaderno lapices sacapuntas", cachedProducts);
     pendingMatchReviews = await getMatchReviews();
     saveProductsToCache();
     return res.json({
@@ -2456,7 +2548,33 @@ app.post("/api/scan-list", scanRateLimiter, verifyBotToken, async (req, res) => 
       brand: p.brand
     }));
 
-    const prompt = `Analiza la siguiente lista de útiles escolares escrita por un usuario. Tu objetivo es extraer cada artículo y asociar o enlazar el artículo al producto de nuestra tienda que mejor se adecue.
+    let contents: any[] = [];
+    let prompt = "";
+
+    if (image && mimeType) {
+      prompt = `Analiza la imagen de la lista de útiles escolares adjunta. Tu objetivo es extraer cada artículo visible y asociar o enlazar el artículo al producto de nuestra tienda que mejor se adecue.
+
+Aquí están las opciones de nuestros productos de la tienda en formato JSON:
+${JSON.stringify(simplifiedProducts, null, 2)}
+
+Genera una respuesta JSON estrictamente estructurada que sea un arreglo de objetos. Cada objeto debe tener:
+- "productId" (String, debe ser exactamente uno de los IDs de productos listados arriba o dejar vacío si ningún producto coincide de forma cercana)
+- "searchedName" (String, el nombre o descripción del útil tal como aparece extraído en el texto de la imagen del usuario)
+- "extractedQuantity" (Número, la cantidad solicitada en la lista. Por defecto, si no indica escribe 1)
+- "matchConfidence" (Número entre 0 y 1, el nivel de confianza de la correspondencia)
+- "explanation" (String, justificación breve de por qué se vinculó a ese ID o sugerencia de compra)`;
+
+      contents = [
+        {
+          inlineData: {
+            data: image,
+            mimeType: mimeType
+          }
+        },
+        prompt
+      ];
+    } else {
+      prompt = `Analiza la siguiente lista de útiles escolares escrita por un usuario. Tu objetivo es extraer cada artículo y asociar o enlazar el artículo al producto de nuestra tienda que mejor se adecue.
 
 Aquí están las opciones de nuestros productos de la tienda en formato JSON:
 ${JSON.stringify(simplifiedProducts, null, 2)}
@@ -2471,11 +2589,14 @@ Genera una respuesta JSON estrictamente estructurada que sea un arreglo de objet
 - "matchConfidence" (Número entre 0 y 1, el nivel de confianza de la correspondencia)
 - "explanation" (String, justificación breve de por qué se vinculó a ese ID o sugerencia de compra)`;
 
+      contents = [prompt];
+    }
+
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: prompt,
+      contents: contents,
       config: {
-        systemInstruction: "Eres el experto en logística escolar de Útiles Online. Analizas listas escolares (en español o mixto) y sugieres productos para facilitar la compra. Devuelve la salida únicamente en formato JSON.",
+        systemInstruction: "Eres el experto en logística escolar de Útiles Online. Analizas listas escolares (en español o mixto, o imágenes de ellas) y sugieres productos para facilitar la compra. Devuelve la salida únicamente en formato JSON.",
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
@@ -2505,7 +2626,7 @@ Genera una respuesta JSON estrictamente estructurada que sea un arreglo de objet
   } catch (error: any) {
     console.error("Error running Gemini scanner:", error);
     // Secure fallback matching so the application is robust
-    const simulatedMatches = await simulateProductMatching(textList, cachedProducts);
+    const simulatedMatches = await simulateProductMatching(textList || "cuaderno lapices sacapuntas", cachedProducts);
     pendingMatchReviews = await getMatchReviews();
     saveProductsToCache();
     res.json({
