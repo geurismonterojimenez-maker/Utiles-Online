@@ -6,7 +6,7 @@ import { TAX_RATES_REGISTRY } from "../src/config/tax-rates";
 
 dotenv.config();
 
-const TAX_RATES_PATH = path.join(__dirname, "../src/config/tax-rates.ts");
+const TAX_RATES_PATH = path.join(process.cwd(), "src/config/tax-rates.ts");
 
 // Helper to clean HTML to just text
 async function fetchPageText(url: string): Promise<string> {
@@ -160,7 +160,7 @@ async function verifyFiscalRates() {
 
   // URLs oficiales de consulta
   const urls = {
-    dgii: "https://dgii.gov.do/sujetosPasivos/personasFisicas/paginas/impuestoRenta.aspx",
+    dgii: "https://dgii.gov.do/contribuyentes/personasFisicas/Paginas/default.aspx",
     tss: "https://tss.gob.do",
     cnss: "https://www.cnss.gob.do"
   };
@@ -215,7 +215,7 @@ ${cnssText || "No disponible"}
 
 Extrae la información fiscal estructurándola exactamente en el siguiente JSON:
 {
-  "afpEmpleado": 0.0287, // Tasa AFP empleado (ej: 2.87% -> 0.0287, o null si no se encuentra)
+  "afpEmpleado": 0.0287, // Tasa AFP empleado (ej: 2.87% -> 0.0287, o null si no se encuentra en el texto de forma explícita)
   "sfsEmpleado": 0.0304, // Tasa SFS empleado (ej: 3.04% -> 0.0304)
   "afpEmpleador": 0.0710, // Tasa AFP empleador (7.10% -> 0.0710)
   "sfsEmpleador": 0.0709, // Tasa SFS empleador (7.09% -> 0.0709)
@@ -226,12 +226,12 @@ Extrae la información fiscal estructurándola exactamente en el siguiente JSON:
   "isrEscala3Limit": 867123.00  // Límite máximo del tercer tramo anual de ISR (excedente paga 25%)
 }
 
-Nota: Si algún dato no se puede encontrar en los textos provistos, devuélvelo como null para ese campo específico. Devuelve únicamente el JSON.`;
+IMPORTANTE: Si algún dato no está explícitamente mencionado en los textos provistos o si tienes dudas sobre si el número representa la tasa oficial de descuento, devuélvelo como null para ese campo. No asumas ni uses estadísticas generales de cantidad de cotizantes o montos de recaudación. Devuelve únicamente el JSON.`;
 
   try {
     console.log("[GEMINI] Enviando textos fiscales a la IA para extracción...");
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Utilizando un modelo rápido y preciso para tareas estructuradas
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -255,20 +255,64 @@ Nota: Si algún dato no se puede encontrar en los textos provistos, devuélvelo 
     const parsed = JSON.parse(response.text.trim());
     console.log("[GEMINI] Tasas extraídas exitosamente:", parsed);
 
+    // Normalizar tasas expresadas en porcentaje (ej: 2.87 -> 0.0287)
+    if (parsed.afpEmpleado && parsed.afpEmpleado > 1) parsed.afpEmpleado /= 100;
+    if (parsed.sfsEmpleado && parsed.sfsEmpleado > 1) parsed.sfsEmpleado /= 100;
+    if (parsed.afpEmpleador && parsed.afpEmpleador > 1) parsed.afpEmpleador /= 100;
+    if (parsed.sfsEmpleador && parsed.sfsEmpleador > 1) parsed.sfsEmpleador /= 100;
+    if (parsed.srlBase && parsed.srlBase > 1) parsed.srlBase /= 100;
+
     const registry = JSON.parse(JSON.stringify(TAX_RATES_REGISTRY)); // deep copy
     let hasChanges = false;
 
-    // Helper to check and mark mismatch
-    const checkValue = (nodePath: any, newVal: number | null, fieldName: string) => {
-      if (newVal !== null && newVal !== undefined && nodePath.value !== newVal) {
-        console.log(`[ALERTA] Diferencia detectada en ${fieldName}: Local=${nodePath.value}, Extraído=${newVal}`);
-        nodePath.value = newVal;
-        nodePath.status = "needs_review";
-        nodePath.notes = `${nodePath.notes} (Revisión fiscal automática detectó cambio el ${new Date().toISOString().slice(0,10)} a RD$ ${newVal} / ${newVal*100}%).`;
-        hasChanges = true;
-      } else if (newVal !== null) {
-        nodePath.status = "current"; // Reset to current if it matches and was previously flagged
+    // Validate value sanity ranges to prevent layout errors or AI hallucinations from corrupting tax calculations
+    const isSanityChecked = (fieldName: string, val: number): boolean => {
+      switch (fieldName) {
+        case "AFP Empleado":
+        case "SFS Empleado":
+          return val >= 0.01 && val <= 0.08;
+        case "AFP Empleador":
+        case "SFS Empleador":
+          return val >= 0.04 && val <= 0.15;
+        case "SRL Empleador Base":
+          return val >= 0.005 && val <= 0.03;
+        case "Salario Base TSS":
+          return val >= 10000 && val <= 40000;
+        case "Tramo Exento Anual de ISR":
+          return val >= 300000 && val <= 600000;
+        default:
+          return true;
       }
+    };
+
+    // Helper to check and mark mismatch safely without altering active calculation value
+    const checkValue = (nodePath: any, newVal: number | null, fieldName: string) => {
+      if (newVal === null || newVal === undefined || newVal <= 0) {
+        return;
+      }
+      
+      // Run sanity checks
+      if (!isSanityChecked(fieldName, newVal)) {
+        console.warn(`[SANIDAD] Valor extraído para ${fieldName} (${newVal}) fuera de rango razonable. Ignorado.`);
+        return;
+      }
+
+      if (nodePath.value !== newVal) {
+        console.log(`[ALERTA] Diferencia detectada en ${fieldName}: Local=${nodePath.value}, Extraído=${newVal}`);
+        nodePath.status = "needs_review";
+        const dateStr = new Date().toISOString().slice(0, 10);
+        const noteMarker = `[Revisión fiscal ${dateStr}]`;
+        if (!nodePath.notes.includes(noteMarker)) {
+          nodePath.notes = `${nodePath.notes} ${noteMarker} La revisión fiscal automática detectó un posible cambio a ${newVal > 1 ? `RD$ ${newVal.toLocaleString()}` : `${(newVal * 100).toFixed(2)}%`}.`;
+        }
+        hasChanges = true;
+      } else {
+        if (nodePath.status !== "current") {
+          nodePath.status = "current";
+          hasChanges = true;
+        }
+      }
+      nodePath.lastChecked = new Date().toISOString().slice(0, 10);
     };
 
     // Check TSS employee rates
@@ -285,48 +329,11 @@ Nota: Si algún dato no se puede encontrar en los textos provistos, devuélvelo 
 
     // Check ISR Escalas Anuales limits
     checkValue(registry.isrEscalasAnuales.metadata, parsed.isrEscala1Limit, "Tramo Exento Anual de ISR");
-    
-    if (parsed.isrEscala1Limit !== null && parsed.isrEscala1Limit !== undefined) {
-      const e = registry.isrEscalasAnuales.escalas;
-      if (e[0].limiteMaximo !== parsed.isrEscala1Limit) {
-        e[0].limiteMaximo = parsed.isrEscala1Limit;
-        e[1].limiteMinimo = parsed.isrEscala1Limit + 0.01;
-        e[1].excedenteRestar = parsed.isrEscala1Limit + 0.01;
-        hasChanges = true;
-      }
-    }
-    if (parsed.isrEscala2Limit !== null && parsed.isrEscala2Limit !== undefined) {
-      const e = registry.isrEscalasAnuales.escalas;
-      if (e[1].limiteMaximo !== parsed.isrEscala2Limit) {
-        e[1].limiteMaximo = parsed.isrEscala2Limit;
-        e[2].limiteMinimo = parsed.isrEscala2Limit + 0.01;
-        e[2].excedenteRestar = parsed.isrEscala2Limit + 0.01;
-        
-        // Recalculate fixed amount for Tramo 3
-        const range2 = e[1].limiteMaximo - (e[1].limiteMinimo - 0.01);
-        e[2].tasaFijaAdicional = Math.round(range2 * 0.15);
-        hasChanges = true;
-      }
-    }
-    if (parsed.isrEscala3Limit !== null && parsed.isrEscala3Limit !== undefined) {
-      const e = registry.isrEscalasAnuales.escalas;
-      if (e[2].limiteMaximo !== parsed.isrEscala3Limit) {
-        e[2].limiteMaximo = parsed.isrEscala3Limit;
-        e[3].limiteMinimo = parsed.isrEscala3Limit + 0.01;
-        e[3].excedenteRestar = parsed.isrEscala3Limit + 0.01;
-
-        // Recalculate fixed amount for Tramo 4
-        const range2 = e[1].limiteMaximo - (e[1].limiteMinimo - 0.01);
-        const range3 = e[2].limiteMaximo - (e[2].limiteMinimo - 0.01);
-        e[3].tasaFijaAdicional = Math.round(range2 * 0.15 + range3 * 0.20);
-        hasChanges = true;
-      }
-    }
 
     if (hasChanges) {
       const newFileContent = generateTaxRatesFileContent(registry);
       fs.writeFileSync(TAX_RATES_PATH, newFileContent, "utf8");
-      console.log("[ÉXITO] Archivo tax-rates.ts actualizado con los cambios fiscales pendientes de revisión.");
+      console.log("[ÉXITO] Archivo tax-rates.ts actualizado con el estado de revisión fiscal.");
     } else {
       console.log("[SISTEMA] No se detectaron diferencias con las tasas locales. El archivo se mantiene intacto.");
     }

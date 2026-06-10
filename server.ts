@@ -2480,20 +2480,28 @@ Genera una respuesta JSON con el siguiente formato:
     }
   }
 
-  // 2. Extraer o simular precios de los supermercados dominicanos
+  // 2. Extraer precios e imagen real de los supermercados dominicanos o la web
   let storePrices: any = null;
+  let extractedImageUrl: string | null = null;
   if (ai) {
     try {
-      console.log(`[PROMOCIÓN] Buscando precios reales para el nuevo producto: ${normalized.name}`);
-      const pricePrompt = `Busca los precios dominicanos de venta reales para el útil escolar: '${normalized.name}'. Devuelve solo las estimaciones de precios (RD$) para sirena, jumbo y nacional en el formato JSON:
+      console.log(`[PROMOCIÓN] Buscando precios reales e imagen para el nuevo producto: ${normalized.name}`);
+      const searchPrompt = `Realiza una búsqueda web para el artículo escolar dominicano: '${normalized.name}'. 
+Determina:
+1. Sus precios reales en pesos dominicanos (RD$) en Sirena (sirena), Jumbo (jumbo) y Supermercados Nacional (nacional).
+2. Una URL directa de imagen pública y real del producto (ya sea de los supermercados dominicanos, la web del fabricante o una imagen de alta calidad de Unsplash que empiece por https://images.unsplash.com/).
+
+Devuelve la respuesta en formato JSON con la siguiente estructura exacta:
 {
-  "sirena": 120, // null si no se halla
+  "sirena": 120, // precio entero en RD$ o null si no se halla
   "jumbo": 125,
-  "nacional": 130
+  "nacional": 130,
+  "imageUrl": "https://ejemplo.com/imagen.jpg" // URL directa de imagen real o null si no se halla
 }`;
-      const priceResponse = await ai.models.generateContent({
+
+      const searchResponse = await ai.models.generateContent({
         model: "gemini-3.5-flash",
-        contents: pricePrompt,
+        contents: searchPrompt,
         config: {
           responseMimeType: "application/json",
           tools: [{ googleSearch: {} }],
@@ -2502,17 +2510,26 @@ Genera una respuesta JSON con el siguiente formato:
             properties: {
               sirena: { type: Type.INTEGER },
               jumbo: { type: Type.INTEGER },
-              nacional: { type: Type.INTEGER }
+              nacional: { type: Type.INTEGER },
+              imageUrl: { type: Type.STRING }
             }
           }
         }
       });
-      const parsedPrices = JSON.parse(priceResponse.text.trim());
-      if (parsedPrices.sirena || parsedPrices.jumbo || parsedPrices.nacional) {
-        storePrices = parsedPrices;
+      const parsedData = JSON.parse(searchResponse.text.trim());
+      if (parsedData.sirena || parsedData.jumbo || parsedData.nacional) {
+        storePrices = {
+          sirena: parsedData.sirena,
+          jumbo: parsedData.jumbo,
+          nacional: parsedData.nacional
+        };
+      }
+      if (parsedData.imageUrl && parsedData.imageUrl.startsWith("http")) {
+        extractedImageUrl = parsedData.imageUrl;
+        console.log(`[PROMOCIÓN] Imagen real extraída con éxito: ${extractedImageUrl}`);
       }
     } catch (err: any) {
-      console.error("[PROMOCIÓN] Error extrayendo precios con búsqueda en vivo:", err.message);
+      console.error("[PROMOCIÓN] Error extrayendo precios e imagen con búsqueda en vivo:", err.message);
     }
   }
 
@@ -2544,7 +2561,7 @@ Genera una respuesta JSON con el siguiente formato:
     };
   }
 
-  // 3. Obtener una foto representativa de Unsplash
+  // 3. Obtener una foto representativa de Unsplash (como fallback)
   const imageMap: Record<string, string> = {
     cuadernos: "https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=600&auto=format&fit=crop",
     escritura: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=600&auto=format&fit=crop",
@@ -2552,7 +2569,8 @@ Genera una respuesta JSON con el siguiente formato:
     arte: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
     tecnologia: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=600&auto=format&fit=crop"
   };
-  const imageUrl = imageMap[normalized.category] || "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=600&auto=format&fit=crop";
+  const defaultImageUrl = imageMap[normalized.category] || "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=600&auto=format&fit=crop";
+  const imageUrl = extractedImageUrl || defaultImageUrl;
 
   // 4. Crear el objeto de producto final
   const newProduct: any = {
