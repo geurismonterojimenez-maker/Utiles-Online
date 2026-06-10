@@ -1,11 +1,11 @@
 {
-  "lastSyncTimestamp": "2026-06-05",
+  "lastSyncTimestamp": "2026-06-06",
   "products": [
     {
       "id": "prod-01",
       "name": "Cuaderno Cosido Línea Rayado Mascot RD",
       "description": "Cuaderno cosido de alta durabilidad con 100 hojas de papel de 60g. Portadas con variados diseños educativos, ideal para primaria y secundaria.",
-      "price": 125,
+      "price": 127,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -21,26 +21,15 @@
       "isFeatured": true,
       "storePrices": {
         "sirena": 119,
-        "jumbo": 122,
-        "nacional": 129,
+        "jumbo": 125,
+        "nacional": 130,
         "plazalama": 125,
-        "bravo": 118,
-        "garrido": 109,
-        "ole": 115,
-        "carrefour": 130
+        "bravo": 121,
+        "garrido": 105,
+        "ole": 114,
+        "carrefour": 129
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 113,
-          "jumbo": 116,
-          "nacional": 123,
-          "plazalama": 119,
-          "bravo": 112,
-          "garrido": 104,
-          "ole": 110,
-          "carrefour": 124
-        },
         {
           "date": "2026-05-08",
           "sirena": 112,
@@ -359,6 +348,17 @@
           "garrido": 104,
           "ole": 110,
           "carrefour": 124
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 119,
+          "jumbo": 125,
+          "nacional": 130,
+          "plazalama": 125,
+          "bravo": 121,
+          "garrido": 105,
+          "ole": 114,
+          "carrefour": 129
         }
       ]
     },
@@ -366,7 +366,7 @@
       "id": "prod-02",
       "name": "Cuaderno de Caligrafía Mascot 60 Hojas",
       "description": "Cuaderno cosido especial con cuadrículas o guías de caligrafía vertical. Ayuda a los niños a mejorar y estructurar el tamaño de la letra.",
-      "price": 95,
+      "price": 91,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?q=80&w=600&auto=format&fit=crop",
       "rating": 4.5,
@@ -380,27 +380,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 92,
-        "jumbo": 89,
-        "nacional": 99,
-        "plazalama": 95,
-        "bravo": 90,
-        "garrido": 85,
-        "ole": 88,
-        "carrefour": 98
+        "sirena": 94,
+        "jumbo": 87,
+        "nacional": 102,
+        "plazalama": 92,
+        "bravo": 87,
+        "garrido": 83,
+        "ole": 90,
+        "carrefour": 97
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 89,
-          "jumbo": 86,
-          "nacional": 95,
-          "plazalama": 91,
-          "bravo": 87,
-          "garrido": 82,
-          "ole": 85,
-          "carrefour": 94
-        },
         {
           "date": "2026-05-08",
           "sirena": 86,
@@ -719,6 +708,17 @@
           "garrido": 81,
           "ole": 84,
           "carrefour": 93
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 94,
+          "jumbo": 87,
+          "nacional": 102,
+          "plazalama": 92,
+          "bravo": 87,
+          "garrido": 83,
+          "ole": 90,
+          "carrefour": 97
         }
       ]
     },
@@ -726,7 +726,7 @@
       "id": "prod-03",
       "name": "Caja de Lápices de Colores Prismacolor Junior x24",
       "description": "Colores surtidos intensos con mina cremosa y punta gruesa de 4mm. Perfectos para colorear, mezclar e ilustrar trabajos de arte escolar de alto impacto.",
-      "price": 495,
+      "price": 496,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.9,
@@ -742,27 +742,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 480,
-        "jumbo": 475,
-        "nacional": 510,
-        "plazalama": 495,
-        "bravo": 465,
-        "garrido": 450,
-        "ole": 460,
-        "carrefour": 520
+        "sirena": 493,
+        "jumbo": 468,
+        "nacional": 494,
+        "plazalama": 484,
+        "bravo": 476,
+        "garrido": 454,
+        "ole": 470,
+        "carrefour": 523
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 464,
-          "jumbo": 460,
-          "nacional": 493,
-          "plazalama": 479,
-          "bravo": 450,
-          "garrido": 435,
-          "ole": 445,
-          "carrefour": 503
-        },
         {
           "date": "2026-05-08",
           "sirena": 453,
@@ -1081,6 +1070,17 @@
           "garrido": 429,
           "ole": 439,
           "carrefour": 496
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 493,
+          "jumbo": 468,
+          "nacional": 494,
+          "plazalama": 484,
+          "bravo": 476,
+          "garrido": 454,
+          "ole": 470,
+          "carrefour": 523
         }
       ]
     },
@@ -1088,7 +1088,7 @@
       "id": "prod-04",
       "name": "Mochila Escolar Porta-Laptop Ergonómica Oxford",
       "description": "Mochila escolar impermeable con soporte lumbar muscular acolchado, compartimento acolchado para laptop de hasta 15.6', cierres de alta calidad y bolsillos laterales de malla.",
-      "price": 1850,
+      "price": 1791,
       "category": "mochilas",
       "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -1103,27 +1103,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 1795,
-        "jumbo": 1820,
-        "nacional": 1950,
-        "plazalama": 1850,
-        "bravo": 1780,
-        "garrido": 1690,
-        "ole": 1730,
-        "carrefour": 1990
+        "sirena": 1765,
+        "jumbo": 1777,
+        "nacional": 1936,
+        "plazalama": 1870,
+        "bravo": 1828,
+        "garrido": 1636,
+        "ole": 1706,
+        "carrefour": 1945
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 1717,
-          "jumbo": 1741,
-          "nacional": 1866,
-          "plazalama": 1770,
-          "bravo": 1703,
-          "garrido": 1617,
-          "ole": 1655,
-          "carrefour": 1904
-        },
         {
           "date": "2026-05-08",
           "sirena": 1696,
@@ -1442,6 +1431,17 @@
           "garrido": 1616,
           "ole": 1654,
           "carrefour": 1903
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 1765,
+          "jumbo": 1777,
+          "nacional": 1936,
+          "plazalama": 1870,
+          "bravo": 1828,
+          "garrido": 1636,
+          "ole": 1706,
+          "carrefour": 1945
         }
       ]
     },
@@ -1449,7 +1449,7 @@
       "id": "prod-05",
       "name": "Bolígrafos Bic Cristal Precision Azul (Caja de 10)",
       "description": "El clásico bolígrafo de bola con punta media de 1.0mm para trazos claros y constantes. Diseño hexagonal emblemático y cuerpo transparente.",
-      "price": 150,
+      "price": 153,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=600&auto=format&fit=crop",
       "rating": 4.6,
@@ -1465,27 +1465,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 145,
+        "sirena": 144,
         "jumbo": 140,
         "nacional": 160,
         "plazalama": 152,
-        "bravo": 138,
-        "garrido": 130,
+        "bravo": 140,
+        "garrido": 129,
         "ole": 135,
-        "carrefour": 155
+        "carrefour": 150
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 138,
-          "jumbo": 134,
-          "nacional": 153,
-          "plazalama": 145,
-          "bravo": 132,
-          "garrido": 124,
-          "ole": 129,
-          "carrefour": 148
-        },
         {
           "date": "2026-05-08",
           "sirena": 136,
@@ -1804,6 +1793,17 @@
           "garrido": 124,
           "ole": 129,
           "carrefour": 148
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 144,
+          "jumbo": 140,
+          "nacional": 160,
+          "plazalama": 152,
+          "bravo": 140,
+          "garrido": 129,
+          "ole": 135,
+          "carrefour": 150
         }
       ]
     },
@@ -1811,7 +1811,7 @@
       "id": "prod-06",
       "name": "Estuche de Témperas Pelikan x12 Colores + Pincel",
       "description": "Témperas escolares solubles en agua de colores vibrantes y alta cobertura. No tóxicas y fáciles de lavar de la mayoría de telas escolares.",
-      "price": 320,
+      "price": 315,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.4,
@@ -1827,27 +1827,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 299,
-        "jumbo": 315,
-        "nacional": 340,
-        "plazalama": 325,
-        "bravo": 295,
-        "garrido": 280,
-        "ole": 290,
-        "carrefour": 335
+        "sirena": 292,
+        "jumbo": 316,
+        "nacional": 345,
+        "plazalama": 327,
+        "bravo": 297,
+        "garrido": 274,
+        "ole": 287,
+        "carrefour": 334
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 285,
-          "jumbo": 300,
-          "nacional": 324,
-          "plazalama": 310,
-          "bravo": 281,
-          "garrido": 267,
-          "ole": 276,
-          "carrefour": 319
-        },
         {
           "date": "2026-05-08",
           "sirena": 282,
@@ -2166,6 +2155,17 @@
           "garrido": 264,
           "ole": 274,
           "carrefour": 316
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 292,
+          "jumbo": 316,
+          "nacional": 345,
+          "plazalama": 327,
+          "bravo": 297,
+          "garrido": 274,
+          "ole": 287,
+          "carrefour": 334
         }
       ]
     },
@@ -2173,7 +2173,7 @@
       "id": "prod-07",
       "name": "Resma de Papel Satinado Premium Letter / Carta 500H",
       "description": "Resma de papel de 20lb ideal para fotocopiadoras, impresoras láser e inyección de tinta. Blancura extrema de 96% para textos nítidos.",
-      "price": 295,
+      "price": 286,
       "category": "tecnologia",
       "image": "https://images.unsplash.com/photo-1603484477859-961a5e72d279?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -2190,27 +2190,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 285,
-        "jumbo": 290,
-        "nacional": 315,
-        "plazalama": 295,
-        "bravo": 280,
-        "garrido": 270,
-        "ole": 275,
-        "carrefour": 310
+        "sirena": 280,
+        "jumbo": 284,
+        "nacional": 313,
+        "plazalama": 303,
+        "bravo": 282,
+        "garrido": 273,
+        "ole": 268,
+        "carrefour": 307
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 275,
-          "jumbo": 280,
-          "nacional": 304,
-          "plazalama": 285,
-          "bravo": 270,
-          "garrido": 261,
-          "ole": 266,
-          "carrefour": 299
-        },
         {
           "date": "2026-05-08",
           "sirena": 269,
@@ -2529,6 +2518,17 @@
           "garrido": 257,
           "ole": 262,
           "carrefour": 295
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 280,
+          "jumbo": 284,
+          "nacional": 313,
+          "plazalama": 303,
+          "bravo": 282,
+          "garrido": 273,
+          "ole": 268,
+          "carrefour": 307
         }
       ]
     },
@@ -2536,7 +2536,7 @@
       "id": "prod-08",
       "name": "Calculadora Científica Casio fx-82MS 2nd Edition",
       "description": "Calculadora escolar científica estándar con pantalla de 2 líneas, 240 funciones integradas y tapa dura resistente a caídas accidentales.",
-      "price": 1150,
+      "price": 1132,
       "category": "tecnologia",
       "image": "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=600&auto=format&fit=crop",
       "rating": 4.9,
@@ -2552,27 +2552,16 @@
       "isFeatured": true,
       "exemptITBIS": true,
       "storePrices": {
-        "sirena": 1120,
-        "jumbo": 1095,
-        "nacional": 1190,
-        "plazalama": 1150,
-        "bravo": 1110,
-        "garrido": 1050,
-        "ole": 1080,
-        "carrefour": 1220
+        "sirena": 1132,
+        "jumbo": 1080,
+        "nacional": 1198,
+        "plazalama": 1182,
+        "bravo": 1145,
+        "garrido": 1038,
+        "ole": 1049,
+        "carrefour": 1223
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 1074,
-          "jumbo": 1050,
-          "nacional": 1141,
-          "plazalama": 1103,
-          "bravo": 1064,
-          "garrido": 1007,
-          "ole": 1035,
-          "carrefour": 1170
-        },
         {
           "date": "2026-05-08",
           "sirena": 1069,
@@ -2891,6 +2880,17 @@
           "garrido": 989,
           "ole": 1017,
           "carrefour": 1149
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 1132,
+          "jumbo": 1080,
+          "nacional": 1198,
+          "plazalama": 1182,
+          "bravo": 1145,
+          "garrido": 1038,
+          "ole": 1049,
+          "carrefour": 1223
         }
       ]
     },
@@ -2898,7 +2898,7 @@
       "id": "prod-09",
       "name": "Lápiz Grafito Mongol #2 Premium (Caja de 12)",
       "description": "El lápiz amarillo colegial clásico con mina de grafito ultra lisa #2, suave borrador libre de látex que no mancha el papel al corregir.",
-      "price": 180,
+      "price": 178,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -2914,27 +2914,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 175,
-        "jumbo": 170,
-        "nacional": 195,
+        "sirena": 177,
+        "jumbo": 171,
+        "nacional": 193,
         "plazalama": 180,
-        "bravo": 165,
-        "garrido": 155,
-        "ole": 160,
+        "bravo": 169,
+        "garrido": 151,
+        "ole": 164,
         "carrefour": 190
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 167,
-          "jumbo": 162,
-          "nacional": 186,
-          "plazalama": 172,
-          "bravo": 157,
-          "garrido": 148,
-          "ole": 153,
-          "carrefour": 181
-        },
         {
           "date": "2026-05-08",
           "sirena": 165,
@@ -3253,6 +3242,17 @@
           "garrido": 147,
           "ole": 151,
           "carrefour": 180
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 177,
+          "jumbo": 171,
+          "nacional": 193,
+          "plazalama": 180,
+          "bravo": 169,
+          "garrido": 151,
+          "ole": 164,
+          "carrefour": 190
         }
       ]
     },
@@ -3260,7 +3260,7 @@
       "id": "prod-10",
       "name": "Juego de Geometría Escolar Maped 4 Piezas",
       "description": "Incluye regla de 30cm, escuadra de 45° de 21cm, cartabón de 60° de 21cm y transportador de 180°. Material plástico transparente de alta durabilidad.",
-      "price": 160,
+      "price": 155,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=600&auto=format&fit=crop",
       "rating": 4.5,
@@ -3277,27 +3277,16 @@
       "isFeatured": false,
       "exemptITBIS": true,
       "storePrices": {
-        "sirena": 149,
-        "jumbo": 155,
-        "nacional": 170,
-        "plazalama": 165,
+        "sirena": 145,
+        "jumbo": 151,
+        "nacional": 171,
+        "plazalama": 160,
         "bravo": 150,
         "garrido": 140,
-        "ole": 145,
-        "carrefour": 172
+        "ole": 149,
+        "carrefour": 174
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 143,
-          "jumbo": 149,
-          "nacional": 163,
-          "plazalama": 159,
-          "bravo": 144,
-          "garrido": 135,
-          "ole": 139,
-          "carrefour": 165
-        },
         {
           "date": "2026-05-08",
           "sirena": 139,
@@ -3616,6 +3605,17 @@
           "garrido": 132,
           "ole": 137,
           "carrefour": 162
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 145,
+          "jumbo": 151,
+          "nacional": 171,
+          "plazalama": 160,
+          "bravo": 150,
+          "garrido": 140,
+          "ole": 149,
+          "carrefour": 174
         }
       ]
     },
@@ -3623,7 +3623,7 @@
       "id": "prod-11",
       "name": "Pegamento Escolar Líquido Elmers Blanco 4oz",
       "description": "Pegamento de secado rápido, transparente e hiper-fácil de lavar. Ideal para pegar papel, cartón de maquetas, madera escolar y manualidades escolares.",
-      "price": 110,
+      "price": 112,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -3639,27 +3639,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 99,
-        "jumbo": 105,
-        "nacional": 115,
-        "plazalama": 110,
-        "bravo": 102,
-        "garrido": 95,
-        "ole": 98,
-        "carrefour": 114
+        "sirena": 101,
+        "jumbo": 102,
+        "nacional": 111,
+        "plazalama": 108,
+        "bravo": 99,
+        "garrido": 94,
+        "ole": 97,
+        "carrefour": 117
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 95,
-          "jumbo": 101,
-          "nacional": 110,
-          "plazalama": 105,
-          "bravo": 98,
-          "garrido": 91,
-          "ole": 94,
-          "carrefour": 109
-        },
         {
           "date": "2026-05-08",
           "sirena": 93,
@@ -3978,6 +3967,17 @@
           "garrido": 90,
           "ole": 93,
           "carrefour": 108
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 101,
+          "jumbo": 102,
+          "nacional": 111,
+          "plazalama": 108,
+          "bravo": 99,
+          "garrido": 94,
+          "ole": 97,
+          "carrefour": 117
         }
       ]
     },
@@ -4001,27 +4001,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 139,
+        "sirena": 143,
         "jumbo": 135,
-        "nacional": 150,
-        "plazalama": 145,
-        "bravo": 132,
-        "garrido": 125,
-        "ole": 129,
+        "nacional": 154,
+        "plazalama": 142,
+        "bravo": 133,
+        "garrido": 123,
+        "ole": 131,
         "carrefour": 152
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 135,
-          "jumbo": 131,
-          "nacional": 145,
-          "plazalama": 141,
-          "bravo": 128,
-          "garrido": 121,
-          "ole": 125,
-          "carrefour": 147
-        },
         {
           "date": "2026-05-08",
           "sirena": 131,
@@ -4340,6 +4329,17 @@
           "garrido": 119,
           "ole": 122,
           "carrefour": 144
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 143,
+          "jumbo": 135,
+          "nacional": 154,
+          "plazalama": 142,
+          "bravo": 133,
+          "garrido": 123,
+          "ole": 131,
+          "carrefour": 152
         }
       ]
     },
@@ -4347,7 +4347,7 @@
       "id": "prod-13",
       "name": "Bloque de Plastilina Faber-Castell 10 Colores",
       "description": "Plastilina de base de cera que no se seca jamás. Textura suave ideal para moldear figuras anatómicas, geográficas o proyectos de preescolar.",
-      "price": 210,
+      "price": 211,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1560421683-6856ea585c78?q=80&w=600&auto=format&fit=crop",
       "rating": 4.6,
@@ -4363,27 +4363,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 195,
-        "jumbo": 205,
-        "nacional": 220,
-        "plazalama": 215,
-        "bravo": 198,
-        "garrido": 185,
-        "ole": 190,
-        "carrefour": 222
+        "sirena": 193,
+        "jumbo": 210,
+        "nacional": 223,
+        "plazalama": 212,
+        "bravo": 203,
+        "garrido": 179,
+        "ole": 195,
+        "carrefour": 229
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 186,
-          "jumbo": 196,
-          "nacional": 210,
-          "plazalama": 205,
-          "bravo": 189,
-          "garrido": 176,
-          "ole": 181,
-          "carrefour": 212
-        },
         {
           "date": "2026-05-08",
           "sirena": 184,
@@ -4702,6 +4691,17 @@
           "garrido": 176,
           "ole": 181,
           "carrefour": 211
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 193,
+          "jumbo": 210,
+          "nacional": 223,
+          "plazalama": 212,
+          "bravo": 203,
+          "garrido": 179,
+          "ole": 195,
+          "carrefour": 229
         }
       ]
     },
@@ -4709,7 +4709,7 @@
       "id": "prod-14",
       "name": "Tijera Escolar Punta Roma Maped Koopy 5\"",
       "description": "Tijera ergonómica asistida por resorte para niños que se inician en el recorte manual. Puntas completamente redondeadas de seguridad certificada.",
-      "price": 90,
+      "price": 88,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1503428526543-45d268143786?q=80&w=600&auto=format&fit=crop",
       "rating": 4.4,
@@ -4725,26 +4725,15 @@
       "isFeatured": false,
       "storePrices": {
         "sirena": 85,
-        "jumbo": 89,
-        "nacional": 95,
-        "plazalama": 92,
-        "bravo": 84,
+        "jumbo": 91,
+        "nacional": 98,
+        "plazalama": 90,
+        "bravo": 82,
         "garrido": 78,
-        "ole": 80,
+        "ole": 82,
         "carrefour": 94
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 81,
-          "jumbo": 85,
-          "nacional": 91,
-          "plazalama": 88,
-          "bravo": 80,
-          "garrido": 75,
-          "ole": 76,
-          "carrefour": 90
-        },
         {
           "date": "2026-05-08",
           "sirena": 80,
@@ -5063,6 +5052,17 @@
           "garrido": 74,
           "ole": 76,
           "carrefour": 89
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 85,
+          "jumbo": 91,
+          "nacional": 98,
+          "plazalama": 90,
+          "bravo": 82,
+          "garrido": 78,
+          "ole": 82,
+          "carrefour": 94
         }
       ]
     },
@@ -5086,27 +5086,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 235,
-        "jumbo": 240,
-        "nacional": 265,
-        "plazalama": 250,
+        "sirena": 229,
+        "jumbo": 236,
+        "nacional": 257,
+        "plazalama": 251,
         "bravo": 230,
-        "garrido": 215,
-        "ole": 225,
+        "garrido": 211,
+        "ole": 222,
         "carrefour": 260
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 224,
-          "jumbo": 228,
-          "nacional": 252,
-          "plazalama": 238,
-          "bravo": 219,
-          "garrido": 205,
-          "ole": 214,
-          "carrefour": 247
-        },
         {
           "date": "2026-05-08",
           "sirena": 224,
@@ -5425,6 +5414,17 @@
           "garrido": 204,
           "ole": 214,
           "carrefour": 247
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 229,
+          "jumbo": 236,
+          "nacional": 257,
+          "plazalama": 251,
+          "bravo": 230,
+          "garrido": 211,
+          "ole": 222,
+          "carrefour": 260
         }
       ]
     },
@@ -5432,7 +5432,7 @@
       "id": "prod-16",
       "name": "Sacapuntas Metálico Maped con Depósito",
       "description": "Sacapuntas de metal duradero de doble entrada con depósito recolector de virutas de plástico irrompible.",
-      "price": 85,
+      "price": 83,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1596495578065-6e0763fa1141?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -5447,27 +5447,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 79,
-        "jumbo": 82,
-        "nacional": 89,
-        "plazalama": 85,
-        "bravo": 78,
-        "garrido": 70,
-        "ole": 75,
+        "sirena": 77,
+        "jumbo": 83,
+        "nacional": 88,
+        "plazalama": 82,
+        "bravo": 77,
+        "garrido": 69,
+        "ole": 73,
         "carrefour": 90
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 76,
-          "jumbo": 79,
-          "nacional": 86,
-          "plazalama": 82,
-          "bravo": 75,
-          "garrido": 67,
-          "ole": 72,
-          "carrefour": 87
-        },
         {
           "date": "2026-05-08",
           "sirena": 75,
@@ -5786,6 +5775,17 @@
           "garrido": 67,
           "ole": 71,
           "carrefour": 86
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 77,
+          "jumbo": 83,
+          "nacional": 88,
+          "plazalama": 82,
+          "bravo": 77,
+          "garrido": 69,
+          "ole": 73,
+          "carrefour": 90
         }
       ]
     },
@@ -5793,7 +5793,7 @@
       "id": "prod-17",
       "name": "Borradores de Goma Faber-Castell (Caja de 2)",
       "description": "Borrador suave libre de PVC de altísima calidad para lápices de grafito. No mancha el papel escolar ni deja rastro.",
-      "price": 70,
+      "price": 68,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1588611843236-407421ac1929?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -5809,26 +5809,15 @@
       "isFeatured": false,
       "storePrices": {
         "sirena": 65,
-        "jumbo": 62,
-        "nacional": 74,
+        "jumbo": 63,
+        "nacional": 72,
         "plazalama": 70,
-        "bravo": 60,
-        "garrido": 55,
-        "ole": 58,
+        "bravo": 61,
+        "garrido": 56,
+        "ole": 59,
         "carrefour": 72
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 62,
-          "jumbo": 60,
-          "nacional": 71,
-          "plazalama": 67,
-          "bravo": 58,
-          "garrido": 53,
-          "ole": 56,
-          "carrefour": 69
-        },
         {
           "date": "2026-05-08",
           "sirena": 62,
@@ -6147,6 +6136,17 @@
           "garrido": 52,
           "ole": 55,
           "carrefour": 68
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 65,
+          "jumbo": 63,
+          "nacional": 72,
+          "plazalama": 70,
+          "bravo": 61,
+          "garrido": 56,
+          "ole": 59,
+          "carrefour": 72
         }
       ]
     },
@@ -6154,7 +6154,7 @@
       "id": "prod-18",
       "name": "Cartuchera Escolar de Doble Cierre Oxford",
       "description": "Cartuchera de tela premium de alta resistencia, con doble cremallera y espacio suficiente para más de 40 lápices, reglas y accesorios escolares.",
-      "price": 350,
+      "price": 347,
       "category": "mochilas",
       "image": "https://images.unsplash.com/photo-1569003339405-ea396a5a8a90?q=80&w=600&auto=format&fit=crop",
       "rating": 4.6,
@@ -6170,26 +6170,15 @@
       "isFeatured": true,
       "storePrices": {
         "sirena": 335,
-        "jumbo": 340,
-        "nacional": 375,
-        "plazalama": 350,
-        "bravo": 325,
-        "garrido": 295,
-        "ole": 310,
-        "carrefour": 365
+        "jumbo": 347,
+        "nacional": 376,
+        "plazalama": 340,
+        "bravo": 332,
+        "garrido": 302,
+        "ole": 304,
+        "carrefour": 372
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 322,
-          "jumbo": 326,
-          "nacional": 360,
-          "plazalama": 336,
-          "bravo": 312,
-          "garrido": 283,
-          "ole": 298,
-          "carrefour": 350
-        },
         {
           "date": "2026-05-08",
           "sirena": 319,
@@ -6508,6 +6497,17 @@
           "garrido": 278,
           "ole": 292,
           "carrefour": 344
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 335,
+          "jumbo": 347,
+          "nacional": 376,
+          "plazalama": 340,
+          "bravo": 332,
+          "garrido": 302,
+          "ole": 304,
+          "carrefour": 372
         }
       ]
     },
@@ -6515,7 +6515,7 @@
       "id": "prod-19",
       "name": "Papel Contact Transparente Forra-Libros (2 metros)",
       "description": "Papel adhesivo transparente de alta densidad para forrar y proteger de raspaduras accidentales los libros y cuadernos escolares.",
-      "price": 195,
+      "price": 198,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1603484477859-961a5e72d279?q=80&w=600&auto=format&fit=crop",
       "rating": 4.4,
@@ -6531,27 +6531,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 185,
+        "sirena": 186,
         "jumbo": 189,
-        "nacional": 210,
-        "plazalama": 195,
-        "bravo": 180,
-        "garrido": 165,
-        "ole": 175,
-        "carrefour": 205
+        "nacional": 205,
+        "plazalama": 189,
+        "bravo": 174,
+        "garrido": 167,
+        "ole": 170,
+        "carrefour": 204
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 179,
-          "jumbo": 183,
-          "nacional": 203,
-          "plazalama": 188,
-          "bravo": 174,
-          "garrido": 159,
-          "ole": 169,
-          "carrefour": 198
-        },
         {
           "date": "2026-05-08",
           "sirena": 175,
@@ -6870,6 +6859,17 @@
           "garrido": 156,
           "ole": 166,
           "carrefour": 194
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 186,
+          "jumbo": 189,
+          "nacional": 205,
+          "plazalama": 189,
+          "bravo": 174,
+          "garrido": 167,
+          "ole": 170,
+          "carrefour": 204
         }
       ]
     },
@@ -6877,7 +6877,7 @@
       "id": "prod-20",
       "name": "Carpeta Escolar de Tres Aros 1.5\" Wilson Jones",
       "description": "Carpeta de hojas intercambiables con lomo reforzado de 1.5 pulgadas y herrajes metálicos de alta calidad para organización escolar.",
-      "price": 240,
+      "price": 250,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -6892,27 +6892,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 225,
-        "jumbo": 230,
-        "nacional": 255,
-        "plazalama": 240,
-        "bravo": 220,
-        "garrido": 200,
-        "ole": 210,
-        "carrefour": 250
+        "sirena": 219,
+        "jumbo": 231,
+        "nacional": 258,
+        "plazalama": 234,
+        "bravo": 215,
+        "garrido": 207,
+        "ole": 212,
+        "carrefour": 242
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 217,
-          "jumbo": 222,
-          "nacional": 246,
-          "plazalama": 232,
-          "bravo": 212,
-          "garrido": 193,
-          "ole": 203,
-          "carrefour": 241
-        },
         {
           "date": "2026-05-08",
           "sirena": 213,
@@ -7231,6 +7220,17 @@
           "garrido": 191,
           "ole": 201,
           "carrefour": 239
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 219,
+          "jumbo": 231,
+          "nacional": 258,
+          "plazalama": 234,
+          "bravo": 215,
+          "garrido": 207,
+          "ole": 212,
+          "carrefour": 242
         }
       ]
     },
@@ -7238,7 +7238,7 @@
       "id": "prod-21",
       "name": "Cuaderno de Cuadros Mascot 100 Hojas (Matemáticas)",
       "description": "Cuaderno cosido con cuadrículas de 5mm ideal para matemáticas, física o geometría. Hojas de 60g de alta resistencia que evitan la filtración de tinta.",
-      "price": 135,
+      "price": 131,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1531346878377-a5ec20888e23?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -7253,27 +7253,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 129,
-        "jumbo": 132,
+        "sirena": 133,
+        "jumbo": 134,
         "nacional": 139,
-        "plazalama": 135,
+        "plazalama": 138,
         "bravo": 128,
-        "garrido": 120,
-        "ole": 122,
-        "carrefour": 140
+        "garrido": 117,
+        "ole": 125,
+        "carrefour": 139
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 123,
-          "jumbo": 126,
-          "nacional": 133,
-          "plazalama": 129,
-          "bravo": 122,
-          "garrido": 115,
-          "ole": 117,
-          "carrefour": 134
-        },
         {
           "date": "2026-05-08",
           "sirena": 123,
@@ -7592,6 +7581,17 @@
           "garrido": 114,
           "ole": 116,
           "carrefour": 133
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 133,
+          "jumbo": 134,
+          "nacional": 139,
+          "plazalama": 138,
+          "bravo": 128,
+          "garrido": 117,
+          "ole": 125,
+          "carrefour": 139
         }
       ]
     },
@@ -7599,7 +7599,7 @@
       "id": "prod-22",
       "name": "Block de Dibujo de Cartulinas Súper Saro x20",
       "description": "Block escolar con 20 cartulinas de colores surtidos de alta densidad (120g). Perfecto para recortes, maquetas y trabajos creativos de manualidades artísticas.",
-      "price": 190,
+      "price": 185,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.6,
@@ -7615,27 +7615,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 180,
-        "jumbo": 185,
-        "nacional": 205,
-        "plazalama": 190,
-        "bravo": 178,
-        "garrido": 165,
-        "ole": 170,
-        "carrefour": 210
+        "sirena": 182,
+        "jumbo": 182,
+        "nacional": 203,
+        "plazalama": 187,
+        "bravo": 174,
+        "garrido": 161,
+        "ole": 167,
+        "carrefour": 216
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 173,
-          "jumbo": 178,
-          "nacional": 197,
-          "plazalama": 183,
-          "bravo": 171,
-          "garrido": 159,
-          "ole": 164,
-          "carrefour": 202
-        },
         {
           "date": "2026-05-08",
           "sirena": 171,
@@ -7954,6 +7943,17 @@
           "garrido": 158,
           "ole": 163,
           "carrefour": 201
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 182,
+          "jumbo": 182,
+          "nacional": 203,
+          "plazalama": 187,
+          "bravo": 174,
+          "garrido": 161,
+          "ole": 167,
+          "carrefour": 216
         }
       ]
     },
@@ -7961,7 +7961,7 @@
       "id": "prod-23",
       "name": "Creyones de Cera Crayola de 24 Colores No Tóxicos",
       "description": "Crayones clásicos con excelente cobertura de color y alta resistencia a quebraduras. No tóxicos y seguros para el uso infantil en preescolar y primaria.",
-      "price": 215,
+      "price": 222,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.9,
@@ -7977,27 +7977,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 205,
-        "jumbo": 198,
-        "nacional": 228,
-        "plazalama": 215,
+        "sirena": 206,
+        "jumbo": 195,
+        "nacional": 229,
+        "plazalama": 212,
         "bravo": 210,
-        "garrido": 189,
-        "ole": 195,
-        "carrefour": 230
+        "garrido": 192,
+        "ole": 191,
+        "carrefour": 231
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 198,
-          "jumbo": 191,
-          "nacional": 220,
-          "plazalama": 208,
-          "bravo": 203,
-          "garrido": 183,
-          "ole": 188,
-          "carrefour": 222
-        },
         {
           "date": "2026-05-08",
           "sirena": 195,
@@ -8316,6 +8305,17 @@
           "garrido": 180,
           "ole": 186,
           "carrefour": 219
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 206,
+          "jumbo": 195,
+          "nacional": 229,
+          "plazalama": 212,
+          "bravo": 210,
+          "garrido": 192,
+          "ole": 191,
+          "carrefour": 231
         }
       ]
     },
@@ -8323,7 +8323,7 @@
       "id": "prod-24",
       "name": "Marcadores Lavables Crayola Colores Clásicos x10",
       "description": "Marcadores con punta cónica ultra duradera que permite trazos gruesos o delgados. Tinta de base de agua 100% lavable de la piel de tus hijos.",
-      "price": 295,
+      "price": 288,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -8339,27 +8339,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 285,
-        "jumbo": 280,
-        "nacional": 310,
-        "plazalama": 295,
-        "bravo": 290,
-        "garrido": 260,
-        "ole": 270,
-        "carrefour": 320
+        "sirena": 291,
+        "jumbo": 285,
+        "nacional": 319,
+        "plazalama": 287,
+        "bravo": 288,
+        "garrido": 257,
+        "ole": 263,
+        "carrefour": 328
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 276,
-          "jumbo": 271,
-          "nacional": 300,
-          "plazalama": 285,
-          "bravo": 280,
-          "garrido": 251,
-          "ole": 261,
-          "carrefour": 310
-        },
         {
           "date": "2026-05-08",
           "sirena": 268,
@@ -8678,6 +8667,17 @@
           "garrido": 249,
           "ole": 259,
           "carrefour": 306
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 291,
+          "jumbo": 285,
+          "nacional": 319,
+          "plazalama": 287,
+          "bravo": 288,
+          "garrido": 257,
+          "ole": 263,
+          "carrefour": 328
         }
       ]
     },
@@ -8685,7 +8685,7 @@
       "id": "prod-25",
       "name": "Mochila con Ruedas Reforzada Xtrem Boys/Girls",
       "description": "Bulto con ruedas de plástico de alta durabilidad, mango de aluminio de 3 niveles y base de PVC protectora. Excelente espacio y cierres metálicos.",
-      "price": 2950,
+      "price": 2833,
       "category": "mochilas",
       "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -8701,27 +8701,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 2850,
-        "jumbo": 2890,
-        "nacional": 3100,
-        "plazalama": 2950,
-        "bravo": 2820,
-        "garrido": 2700,
-        "ole": 2750,
-        "carrefour": 3150
+        "sirena": 2797,
+        "jumbo": 2872,
+        "nacional": 3184,
+        "plazalama": 2912,
+        "bravo": 2892,
+        "garrido": 2786,
+        "ole": 2728,
+        "carrefour": 3084
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 2754,
-          "jumbo": 2792,
-          "nacional": 2995,
-          "plazalama": 2850,
-          "bravo": 2725,
-          "garrido": 2609,
-          "ole": 2657,
-          "carrefour": 3044
-        },
         {
           "date": "2026-05-08",
           "sirena": 2717,
@@ -9040,6 +9029,17 @@
           "garrido": 2592,
           "ole": 2640,
           "carrefour": 3024
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 2797,
+          "jumbo": 2872,
+          "nacional": 3184,
+          "plazalama": 2912,
+          "bravo": 2892,
+          "garrido": 2786,
+          "ole": 2728,
+          "carrefour": 3084
         }
       ]
     },
@@ -9047,7 +9047,7 @@
       "id": "prod-26",
       "name": "Lonchera Térmica Impermeable Oxford Bags",
       "description": "Lonchera escolar con aislamiento térmico de alta densidad para mantener frescos los alimentos de la merienda. Interior libre de BPA fácil de limpiar.",
-      "price": 850,
+      "price": 813,
       "category": "mochilas",
       "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=600&auto=format&fit=crop",
       "rating": 4.5,
@@ -9063,27 +9063,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 795,
-        "jumbo": 825,
-        "nacional": 890,
-        "plazalama": 850,
-        "bravo": 790,
-        "garrido": 750,
-        "ole": 765,
-        "carrefour": 920
+        "sirena": 820,
+        "jumbo": 802,
+        "nacional": 873,
+        "plazalama": 859,
+        "bravo": 779,
+        "garrido": 759,
+        "ole": 741,
+        "carrefour": 921
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 761,
-          "jumbo": 790,
-          "nacional": 852,
-          "plazalama": 814,
-          "bravo": 757,
-          "garrido": 718,
-          "ole": 733,
-          "carrefour": 881
-        },
         {
           "date": "2026-05-08",
           "sirena": 745,
@@ -9402,6 +9391,17 @@
           "garrido": 707,
           "ole": 721,
           "carrefour": 867
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 820,
+          "jumbo": 802,
+          "nacional": 873,
+          "plazalama": 859,
+          "bravo": 779,
+          "garrido": 759,
+          "ole": 741,
+          "carrefour": 921
         }
       ]
     },
@@ -9409,7 +9409,7 @@
       "id": "prod-27",
       "name": "Termo de Agua Antiderrames Contigo Kids 14oz",
       "description": "Termo infantil con tecnología Autospout antiderrames. Boquilla de silicona blanda de alta resistencia, asa de transporte y cuerpo completamente libre de BPA.",
-      "price": 995,
+      "price": 965,
       "category": "tecnologia",
       "image": "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?q=80&w=600&auto=format&fit=crop",
       "rating": 4.9,
@@ -9425,27 +9425,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 950,
-        "jumbo": 975,
-        "nacional": 1050,
-        "plazalama": 995,
-        "bravo": 940,
-        "garrido": 890,
-        "ole": 910,
-        "carrefour": 1090
+        "sirena": 934,
+        "jumbo": 964,
+        "nacional": 1045,
+        "plazalama": 963,
+        "bravo": 962,
+        "garrido": 887,
+        "ole": 892,
+        "carrefour": 1079
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 919,
-          "jumbo": 943,
-          "nacional": 1016,
-          "plazalama": 963,
-          "bravo": 909,
-          "garrido": 861,
-          "ole": 880,
-          "carrefour": 1054
-        },
         {
           "date": "2026-05-08",
           "sirena": 897,
@@ -9764,6 +9753,17 @@
           "garrido": 843,
           "ole": 862,
           "carrefour": 1033
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 934,
+          "jumbo": 964,
+          "nacional": 1045,
+          "plazalama": 963,
+          "bravo": 962,
+          "garrido": 887,
+          "ole": 892,
+          "carrefour": 1079
         }
       ]
     },
@@ -9771,7 +9771,7 @@
       "id": "prod-28",
       "name": "Delantal de Pintura Plástica Infantil Maped",
       "description": "Delantal impermeable plástico transparente para proteger el uniforme escolar de manchas de témpera, pintura o pegamento. Talla única para niños de 4 a 8 años.",
-      "price": 220,
+      "price": 224,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.4,
@@ -9787,27 +9787,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 199,
-        "jumbo": 210,
-        "nacional": 235,
-        "plazalama": 220,
-        "bravo": 195,
-        "garrido": 185,
-        "ole": 190,
-        "carrefour": 240
+        "sirena": 201,
+        "jumbo": 205,
+        "nacional": 242,
+        "plazalama": 219,
+        "bravo": 190,
+        "garrido": 190,
+        "ole": 184,
+        "carrefour": 244
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 191,
-          "jumbo": 201,
-          "nacional": 225,
-          "plazalama": 211,
-          "bravo": 187,
-          "garrido": 177,
-          "ole": 182,
-          "carrefour": 230
-        },
         {
           "date": "2026-05-08",
           "sirena": 189,
@@ -10126,6 +10115,17 @@
           "garrido": 177,
           "ole": 182,
           "carrefour": 229
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 201,
+          "jumbo": 205,
+          "nacional": 242,
+          "plazalama": 219,
+          "bravo": 190,
+          "garrido": 190,
+          "ole": 184,
+          "carrefour": 244
         }
       ]
     },
@@ -10133,7 +10133,7 @@
       "id": "prod-34",
       "name": "Audífonos Escolares Acolchados con Micrófono USB",
       "description": "Audífonos estéreo de diadema regulable con control de volumen en el cable y micrófono con anulación de ruidos. Excelente para clases virtuales de inglés.",
-      "price": 890,
+      "price": 889,
       "category": "tecnologia",
       "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600&auto=format&fit=crop",
       "rating": 4.6,
@@ -10150,27 +10150,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 850,
-        "jumbo": 820,
-        "nacional": 950,
-        "plazalama": 890,
-        "bravo": 830,
-        "garrido": 780,
-        "ole": 800,
-        "carrefour": 990
+        "sirena": 841,
+        "jumbo": 845,
+        "nacional": 937,
+        "plazalama": 902,
+        "bravo": 849,
+        "garrido": 769,
+        "ole": 822,
+        "carrefour": 1022
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 819,
-          "jumbo": 790,
-          "nacional": 916,
-          "plazalama": 858,
-          "bravo": 800,
-          "garrido": 752,
-          "ole": 771,
-          "carrefour": 954
-        },
         {
           "date": "2026-05-08",
           "sirena": 806,
@@ -10489,6 +10478,17 @@
           "garrido": 740,
           "ole": 759,
           "carrefour": 939
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 841,
+          "jumbo": 845,
+          "nacional": 937,
+          "plazalama": 902,
+          "bravo": 849,
+          "garrido": 769,
+          "ole": 822,
+          "carrefour": 1022
         }
       ]
     },
@@ -10496,7 +10496,7 @@
       "id": "prod-35",
       "name": "Memoria USB 3.2 Kingston DataTraveler Exodia 64GB",
       "description": "Unidad de almacenamiento USB 3.2 de 64 Gigas de capacidad para almacenamiento seguro de informes de proyectos, presentaciones y tareas escolares.",
-      "price": 495,
+      "price": 485,
       "category": "tecnologia",
       "image": "https://images.unsplash.com/photo-1624969862293-b749659ccc4e?q=80&w=600&auto=format&fit=crop",
       "rating": 4.9,
@@ -10513,27 +10513,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 450,
-        "jumbo": 470,
-        "nacional": 520,
-        "plazalama": 495,
-        "bravo": 440,
-        "garrido": 395,
-        "ole": 410,
-        "carrefour": 540
+        "sirena": 465,
+        "jumbo": 480,
+        "nacional": 532,
+        "plazalama": 485,
+        "bravo": 441,
+        "garrido": 383,
+        "ole": 404,
+        "carrefour": 552
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 429,
-          "jumbo": 448,
-          "nacional": 496,
-          "plazalama": 472,
-          "bravo": 420,
-          "garrido": 377,
-          "ole": 391,
-          "carrefour": 515
-        },
         {
           "date": "2026-05-08",
           "sirena": 427,
@@ -10852,6 +10841,17 @@
           "garrido": 378,
           "ole": 393,
           "carrefour": 517
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 465,
+          "jumbo": 480,
+          "nacional": 532,
+          "plazalama": 485,
+          "bravo": 441,
+          "garrido": 383,
+          "ole": 404,
+          "carrefour": 552
         }
       ]
     },
@@ -10859,7 +10859,7 @@
       "id": "prod-36",
       "name": "Portaminas PaperMate SharpWriter #2 x5 unidades",
       "description": "Caja con 5 portaminas mecánicos desechables con punta amortiguada y mina de grafito de 0.7mm que disminuye drásticamente las roturas de punta.",
-      "price": 210,
+      "price": 216,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -10874,27 +10874,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 195,
-        "jumbo": 189,
-        "nacional": 225,
-        "plazalama": 210,
-        "bravo": 198,
-        "garrido": 175,
-        "ole": 180,
-        "carrefour": 235
+        "sirena": 198,
+        "jumbo": 186,
+        "nacional": 219,
+        "plazalama": 215,
+        "bravo": 196,
+        "garrido": 173,
+        "ole": 177,
+        "carrefour": 228
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 186,
-          "jumbo": 180,
-          "nacional": 214,
-          "plazalama": 200,
-          "bravo": 189,
-          "garrido": 167,
-          "ole": 172,
-          "carrefour": 224
-        },
         {
           "date": "2026-05-08",
           "sirena": 184,
@@ -11213,6 +11202,17 @@
           "garrido": 167,
           "ole": 172,
           "carrefour": 225
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 198,
+          "jumbo": 186,
+          "nacional": 219,
+          "plazalama": 215,
+          "bravo": 196,
+          "garrido": 173,
+          "ole": 177,
+          "carrefour": 228
         }
       ]
     },
@@ -11220,7 +11220,7 @@
       "id": "prod-37",
       "name": "Cinta Adhesiva Invisible Scotch 3M (Doble Pack)",
       "description": "Cinta adhesiva de 19mm x 7.5m transparente de terminación opaca que permite escribir sobre ella con bolígrafo, lápiz o marcador. No amarillea.",
-      "price": 185,
+      "price": 188,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1606857521015-7f9fcf423740?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -11236,27 +11236,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 175,
-        "jumbo": 169,
-        "nacional": 199,
-        "plazalama": 185,
+        "sirena": 174,
+        "jumbo": 163,
+        "nacional": 203,
+        "plazalama": 190,
         "bravo": 172,
-        "garrido": 155,
-        "ole": 160,
-        "carrefour": 205
+        "garrido": 156,
+        "ole": 155,
+        "carrefour": 207
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 167,
-          "jumbo": 161,
-          "nacional": 190,
-          "plazalama": 176,
-          "bravo": 164,
-          "garrido": 148,
-          "ole": 153,
-          "carrefour": 196
-        },
         {
           "date": "2026-05-08",
           "sirena": 166,
@@ -11575,6 +11564,17 @@
           "garrido": 149,
           "ole": 154,
           "carrefour": 197
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 174,
+          "jumbo": 163,
+          "nacional": 203,
+          "plazalama": 190,
+          "bravo": 172,
+          "garrido": 156,
+          "ole": 155,
+          "carrefour": 207
         }
       ]
     },
@@ -11582,7 +11582,7 @@
       "id": "prod-38",
       "name": "Grapadora de Mano Compacta Zenith + Caja de Grapas x1000",
       "description": "Grapadora metálica pequeña ordinaria y portátil con capacidad para grapar hasta 12 hojas a la vez con grapas estándar No. 10.",
-      "price": 260,
+      "price": 250,
       "category": "tecnologia",
       "image": "https://images.unsplash.com/photo-1588611843236-407421ac1929?q=80&w=600&auto=format&fit=crop",
       "rating": 4.5,
@@ -11599,26 +11599,15 @@
       "isFeatured": false,
       "storePrices": {
         "sirena": 239,
-        "jumbo": 245,
-        "nacional": 285,
-        "plazalama": 260,
-        "bravo": 240,
-        "garrido": 210,
-        "ole": 220,
-        "carrefour": 290
+        "jumbo": 237,
+        "nacional": 287,
+        "plazalama": 266,
+        "bravo": 246,
+        "garrido": 203,
+        "ole": 226,
+        "carrefour": 298
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 231,
-          "jumbo": 236,
-          "nacional": 275,
-          "plazalama": 251,
-          "bravo": 232,
-          "garrido": 203,
-          "ole": 212,
-          "carrefour": 280
-        },
         {
           "date": "2026-05-08",
           "sirena": 226,
@@ -11937,6 +11926,17 @@
           "garrido": 201,
           "ole": 210,
           "carrefour": 277
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 239,
+          "jumbo": 237,
+          "nacional": 287,
+          "plazalama": 266,
+          "bravo": 246,
+          "garrido": 203,
+          "ole": 226,
+          "carrefour": 298
         }
       ]
     },
@@ -11944,7 +11944,7 @@
       "id": "prod-53",
       "name": "Lápices De Colores Bic Evolution 12 Und",
       "description": "Caja de 12 lápices de colores ultra-resistentes fabricados con resina sintética (sin madera). No se astillan al sacarle punta y tienen colores intensos escolares.",
-      "price": 235,
+      "price": 232,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -11960,27 +11960,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 235,
-        "jumbo": 229,
-        "nacional": 245,
-        "plazalama": 235,
-        "bravo": 230,
-        "garrido": 215,
-        "ole": 220,
-        "carrefour": 250
+        "sirena": 239,
+        "jumbo": 231,
+        "nacional": 244,
+        "plazalama": 241,
+        "bravo": 231,
+        "garrido": 214,
+        "ole": 226,
+        "carrefour": 252
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 224,
-          "jumbo": 218,
-          "nacional": 234,
-          "plazalama": 224,
-          "bravo": 219,
-          "garrido": 205,
-          "ole": 210,
-          "carrefour": 238
-        },
         {
           "date": "2026-05-08",
           "sirena": 220,
@@ -12299,6 +12288,17 @@
           "garrido": 203,
           "ole": 208,
           "carrefour": 236
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 239,
+          "jumbo": 231,
+          "nacional": 244,
+          "plazalama": 241,
+          "bravo": 231,
+          "garrido": 214,
+          "ole": 226,
+          "carrefour": 252
         }
       ]
     },
@@ -12322,27 +12322,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 99,
-        "jumbo": 95,
-        "nacional": 105,
-        "plazalama": 99,
+        "sirena": 102,
+        "jumbo": 96,
+        "nacional": 107,
+        "plazalama": 101,
         "bravo": 92,
-        "garrido": 85,
-        "ole": 88,
-        "carrefour": 109
+        "garrido": 86,
+        "ole": 86,
+        "carrefour": 105
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 96,
-          "jumbo": 92,
-          "nacional": 102,
-          "plazalama": 96,
-          "bravo": 89,
-          "garrido": 82,
-          "ole": 85,
-          "carrefour": 105
-        },
         {
           "date": "2026-05-08",
           "sirena": 93,
@@ -12661,6 +12650,17 @@
           "garrido": 81,
           "ole": 84,
           "carrefour": 104
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 102,
+          "jumbo": 96,
+          "nacional": 107,
+          "plazalama": 101,
+          "bravo": 92,
+          "garrido": 86,
+          "ole": 86,
+          "carrefour": 105
         }
       ]
     },
@@ -12668,7 +12668,7 @@
       "id": "prod-45",
       "name": "Bolígrafo Hi-Flux Bille Azul Stabilo 10 Und",
       "description": "Caja con 10 bolígrafos de trazo ultra-suave y empuñadura ergonómica antideslizante. Tinta líquida de alto rendimiento que no se desvanece.",
-      "price": 549,
+      "price": 548,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=600&auto=format&fit=crop",
       "rating": 4.9,
@@ -12684,27 +12684,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 549,
-        "jumbo": 539,
-        "nacional": 565,
-        "plazalama": 549,
-        "bravo": 530,
-        "garrido": 510,
-        "ole": 515,
-        "carrefour": 575
+        "sirena": 551,
+        "jumbo": 545,
+        "nacional": 546,
+        "plazalama": 532,
+        "bravo": 514,
+        "garrido": 501,
+        "ole": 512,
+        "carrefour": 593
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 531,
-          "jumbo": 522,
-          "nacional": 547,
-          "plazalama": 531,
-          "bravo": 513,
-          "garrido": 494,
-          "ole": 499,
-          "carrefour": 557
-        },
         {
           "date": "2026-05-08",
           "sirena": 522,
@@ -13023,6 +13012,17 @@
           "garrido": 481,
           "ole": 485,
           "carrefour": 542
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 551,
+          "jumbo": 545,
+          "nacional": 546,
+          "plazalama": 532,
+          "bravo": 514,
+          "garrido": 501,
+          "ole": 512,
+          "carrefour": 593
         }
       ]
     },
@@ -13030,7 +13030,7 @@
       "id": "prod-41",
       "name": "Folder Carta Negro Irasa 2310",
       "description": "Folder escolar tamaño carta fabricado en cartón de fibra prensada negra de alta durabilidad y resistencia al uso diario continuo.",
-      "price": 19,
+      "price": 18,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?q=80&w=600&auto=format&fit=crop",
       "rating": 4.5,
@@ -13046,9 +13046,9 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 19,
-        "jumbo": 19,
-        "nacional": 21,
+        "sirena": 20,
+        "jumbo": 18,
+        "nacional": 20,
         "plazalama": 19,
         "bravo": 18,
         "garrido": 17,
@@ -13056,17 +13056,6 @@
         "carrefour": 22
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 18,
-          "jumbo": 18,
-          "nacional": 20,
-          "plazalama": 18,
-          "bravo": 17,
-          "garrido": 16,
-          "ole": 17,
-          "carrefour": 21
-        },
         {
           "date": "2026-05-08",
           "sirena": 18,
@@ -13385,6 +13374,17 @@
           "garrido": 16,
           "ole": 17,
           "carrefour": 21
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 20,
+          "jumbo": 18,
+          "nacional": 20,
+          "plazalama": 19,
+          "bravo": 18,
+          "garrido": 17,
+          "ole": 18,
+          "carrefour": 22
         }
       ]
     },
@@ -13392,7 +13392,7 @@
       "id": "prod-56",
       "name": "Grapas Eagle 26/6 1000 Staples",
       "description": "Caja de 1,000 grapas de acero de alta resistencia y penetración para grapadoras escolares estándar de oficina y manualidades.",
-      "price": 65,
+      "price": 62,
       "category": "tecnologia",
       "image": "https://images.unsplash.com/photo-1588611843236-407421ac1929?q=80&w=600&auto=format&fit=crop",
       "rating": 4.6,
@@ -13408,27 +13408,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 65,
-        "jumbo": 60,
-        "nacional": 70,
-        "plazalama": 65,
+        "sirena": 64,
+        "jumbo": 61,
+        "nacional": 72,
+        "plazalama": 63,
         "bravo": 59,
-        "garrido": 55,
+        "garrido": 54,
         "ole": 58,
-        "carrefour": 72
+        "carrefour": 71
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 63,
-          "jumbo": 58,
-          "nacional": 68,
-          "plazalama": 63,
-          "bravo": 57,
-          "garrido": 53,
-          "ole": 56,
-          "carrefour": 70
-        },
         {
           "date": "2026-05-08",
           "sirena": 61,
@@ -13747,6 +13736,17 @@
           "garrido": 52,
           "ole": 55,
           "carrefour": 68
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 64,
+          "jumbo": 61,
+          "nacional": 72,
+          "plazalama": 63,
+          "bravo": 59,
+          "garrido": 54,
+          "ole": 58,
+          "carrefour": 71
         }
       ]
     },
@@ -13754,7 +13754,7 @@
       "id": "prod-46",
       "name": "Bolígrafos Keyroad Ball Pen Soft Grip 3 Pcs",
       "description": "Blíster con 3 bolígrafos ergonómicos Keyroad en colores azul, negro y rojo. Cuerpo acolchado suave que previene la fatiga manual del alumno al escribir.",
-      "price": 145,
+      "price": 139,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1585336261022-675929945037?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -13770,27 +13770,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 145,
-        "jumbo": 139,
-        "nacional": 155,
-        "plazalama": 145,
-        "bravo": 135,
-        "garrido": 125,
-        "ole": 129,
-        "carrefour": 159
+        "sirena": 146,
+        "jumbo": 135,
+        "nacional": 154,
+        "plazalama": 150,
+        "bravo": 134,
+        "garrido": 121,
+        "ole": 130,
+        "carrefour": 163
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 139,
-          "jumbo": 133,
-          "nacional": 148,
-          "plazalama": 139,
-          "bravo": 129,
-          "garrido": 120,
-          "ole": 123,
-          "carrefour": 152
-        },
         {
           "date": "2026-05-08",
           "sirena": 136,
@@ -14109,6 +14098,17 @@
           "garrido": 120,
           "ole": 124,
           "carrefour": 153
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 146,
+          "jumbo": 135,
+          "nacional": 154,
+          "plazalama": 150,
+          "bravo": 134,
+          "garrido": 121,
+          "ole": 130,
+          "carrefour": 163
         }
       ]
     },
@@ -14116,7 +14116,7 @@
       "id": "prod-39b",
       "name": "Folder de Plástico con Elástico Portapapeles Saro",
       "description": "Folder plástico tamaño carta súper resistente con gomas elásticas en las esquinas para mantener seguros documentos escolares.",
-      "price": 115,
+      "price": 118,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1606857521015-7f9fcf423740?q=80&w=600&auto=format&fit=crop",
       "rating": 4.5,
@@ -14133,26 +14133,15 @@
       "isFeatured": false,
       "storePrices": {
         "sirena": 109,
-        "jumbo": 112,
-        "nacional": 120,
-        "plazalama": 115,
-        "bravo": 105,
-        "garrido": 99,
-        "ole": 102,
-        "carrefour": 122
+        "jumbo": 116,
+        "nacional": 121,
+        "plazalama": 114,
+        "bravo": 107,
+        "garrido": 101,
+        "ole": 99,
+        "carrefour": 123
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 104,
-          "jumbo": 107,
-          "nacional": 114,
-          "plazalama": 110,
-          "bravo": 100,
-          "garrido": 94,
-          "ole": 97,
-          "carrefour": 116
-        },
         {
           "date": "2026-05-08",
           "sirena": 104,
@@ -14471,6 +14460,17 @@
           "garrido": 94,
           "ole": 96,
           "carrefour": 115
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 109,
+          "jumbo": 116,
+          "nacional": 121,
+          "plazalama": 114,
+          "bravo": 107,
+          "garrido": 101,
+          "ole": 99,
+          "carrefour": 123
         }
       ]
     },
@@ -14478,7 +14478,7 @@
       "id": "prod-60",
       "name": "Compás Escolar de Precisión Maped con Lápiz portaminas",
       "description": "Compás metálico articulado de ajuste rígido para brazos precisos y círculos consistentes de hasta 30cm de diámetro.",
-      "price": 195,
+      "price": 193,
       "category": "escritura",
       "image": "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -14494,27 +14494,16 @@
       ],
       "isFeatured": true,
       "storePrices": {
-        "sirena": 185,
-        "jumbo": 179,
-        "nacional": 215,
-        "plazalama": 195,
-        "bravo": 180,
+        "sirena": 187,
+        "jumbo": 180,
+        "nacional": 218,
+        "plazalama": 200,
+        "bravo": 174,
         "garrido": 160,
-        "ole": 168,
-        "carrefour": 215
+        "ole": 164,
+        "carrefour": 221
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 179,
-          "jumbo": 173,
-          "nacional": 208,
-          "plazalama": 189,
-          "bravo": 174,
-          "garrido": 155,
-          "ole": 163,
-          "carrefour": 208
-        },
         {
           "date": "2026-05-08",
           "sirena": 175,
@@ -14833,6 +14822,17 @@
           "garrido": 151,
           "ole": 159,
           "carrefour": 203
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 187,
+          "jumbo": 180,
+          "nacional": 218,
+          "plazalama": 200,
+          "bravo": 174,
+          "garrido": 160,
+          "ole": 164,
+          "carrefour": 221
         }
       ]
     },
@@ -14840,7 +14840,7 @@
       "id": "prod-41b",
       "name": "Caja de Lápices de Colores Staedtler Noris Club x12",
       "description": "Lápices de colores escolares clásicos con mina reforzada antirotura sistema ABS. 12 colores brillantes de alta pigmentación alemana.",
-      "price": 160,
+      "price": 161,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=600&auto=format&fit=crop",
       "rating": 4.8,
@@ -14856,27 +14856,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 149,
-        "jumbo": 155,
+        "sirena": 150,
+        "jumbo": 154,
         "nacional": 169,
-        "plazalama": 160,
-        "bravo": 145,
-        "garrido": 135,
-        "ole": 140,
+        "plazalama": 156,
+        "bravo": 148,
+        "garrido": 134,
+        "ole": 142,
         "carrefour": 175
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 145,
-          "jumbo": 150,
-          "nacional": 164,
-          "plazalama": 155,
-          "bravo": 141,
-          "garrido": 131,
-          "ole": 136,
-          "carrefour": 170
-        },
         {
           "date": "2026-05-08",
           "sirena": 142,
@@ -15195,6 +15184,17 @@
           "garrido": 128,
           "ole": 133,
           "carrefour": 166
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 150,
+          "jumbo": 154,
+          "nacional": 169,
+          "plazalama": 156,
+          "bravo": 148,
+          "garrido": 134,
+          "ole": 142,
+          "carrefour": 175
         }
       ]
     },
@@ -15202,7 +15202,7 @@
       "id": "prod-42b",
       "name": "Masilla de Modelar Play-Doh Classic (Pote de 4 Colores)",
       "description": "Masilla Classic para juego moldeable no tóxica. Colores surtidos brillantes ideales para actividades creativas sensoriales de preescolar.",
-      "price": 395,
+      "price": 401,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1560421683-6856ea585c78?q=80&w=600&auto=format&fit=crop",
       "rating": 4.9,
@@ -15218,27 +15218,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 375,
-        "jumbo": 380,
-        "nacional": 410,
-        "plazalama": 395,
-        "bravo": 365,
-        "garrido": 345,
-        "ole": 350,
-        "carrefour": 425
+        "sirena": 381,
+        "jumbo": 372,
+        "nacional": 406,
+        "plazalama": 406,
+        "bravo": 363,
+        "garrido": 355,
+        "ole": 355,
+        "carrefour": 438
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 358,
-          "jumbo": 363,
-          "nacional": 392,
-          "plazalama": 377,
-          "bravo": 349,
-          "garrido": 330,
-          "ole": 334,
-          "carrefour": 406
-        },
         {
           "date": "2026-05-08",
           "sirena": 358,
@@ -15557,6 +15546,17 @@
           "garrido": 331,
           "ole": 335,
           "carrefour": 407
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 381,
+          "jumbo": 372,
+          "nacional": 406,
+          "plazalama": 406,
+          "bravo": 363,
+          "garrido": 355,
+          "ole": 355,
+          "carrefour": 438
         }
       ]
     },
@@ -15580,27 +15580,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 275,
-        "jumbo": 269,
-        "nacional": 299,
-        "plazalama": 290,
-        "bravo": 270,
-        "garrido": 250,
-        "ole": 255,
-        "carrefour": 310
+        "sirena": 270,
+        "jumbo": 273,
+        "nacional": 305,
+        "plazalama": 296,
+        "bravo": 273,
+        "garrido": 249,
+        "ole": 254,
+        "carrefour": 311
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 266,
-          "jumbo": 261,
-          "nacional": 290,
-          "plazalama": 281,
-          "bravo": 262,
-          "garrido": 242,
-          "ole": 247,
-          "carrefour": 300
-        },
         {
           "date": "2026-05-08",
           "sirena": 258,
@@ -15919,6 +15908,17 @@
           "garrido": 237,
           "ole": 242,
           "carrefour": 294
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 270,
+          "jumbo": 273,
+          "nacional": 305,
+          "plazalama": 296,
+          "bravo": 273,
+          "garrido": 249,
+          "ole": 254,
+          "carrefour": 311
         }
       ]
     },
@@ -15926,7 +15926,7 @@
       "id": "prod-44b",
       "name": "Cuaderno de Dibujo Súper Saro 40 Hojas",
       "description": "Cuaderno espiral especial para expresión artística infantil y dibujo, hojas blancas de cartulina suave de 90g de grosor para aguantar creyones y témperas.",
-      "price": 165,
+      "price": 162,
       "category": "cuadernos",
       "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=600&auto=format&fit=crop",
       "rating": 4.6,
@@ -15942,27 +15942,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 155,
-        "jumbo": 159,
-        "nacional": 175,
-        "plazalama": 165,
-        "bravo": 150,
-        "garrido": 140,
-        "ole": 145,
-        "carrefour": 180
+        "sirena": 150,
+        "jumbo": 161,
+        "nacional": 174,
+        "plazalama": 164,
+        "bravo": 149,
+        "garrido": 144,
+        "ole": 142,
+        "carrefour": 181
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 149,
-          "jumbo": 152,
-          "nacional": 168,
-          "plazalama": 158,
-          "bravo": 144,
-          "garrido": 134,
-          "ole": 139,
-          "carrefour": 173
-        },
         {
           "date": "2026-05-08",
           "sirena": 146,
@@ -16281,6 +16270,17 @@
           "garrido": 133,
           "ole": 138,
           "carrefour": 171
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 150,
+          "jumbo": 161,
+          "nacional": 174,
+          "plazalama": 164,
+          "bravo": 149,
+          "garrido": 144,
+          "ole": 142,
+          "carrefour": 181
         }
       ]
     },
@@ -16288,7 +16288,7 @@
       "id": "prod-45b",
       "name": "Témperas Acrílicas Artísticas Giotto x6 Colores",
       "description": "Set de 6 botes de témpera acrílica lista para su uso escolar. Colores ricos y de máxima cobertura fáciles de mezclar.",
-      "price": 245,
+      "price": 252,
       "category": "arte",
       "image": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
       "rating": 4.7,
@@ -16304,27 +16304,16 @@
       ],
       "isFeatured": false,
       "storePrices": {
-        "sirena": 235,
-        "jumbo": 230,
-        "nacional": 255,
-        "plazalama": 245,
-        "bravo": 220,
-        "garrido": 210,
-        "ole": 215,
-        "carrefour": 265
+        "sirena": 240,
+        "jumbo": 233,
+        "nacional": 250,
+        "plazalama": 237,
+        "bravo": 218,
+        "garrido": 212,
+        "ole": 220,
+        "carrefour": 269
       },
       "priceHistory": [
-        {
-          "date": "2026-05-07",
-          "sirena": 226,
-          "jumbo": 221,
-          "nacional": 245,
-          "plazalama": 235,
-          "bravo": 211,
-          "garrido": 202,
-          "ole": 206,
-          "carrefour": 254
-        },
         {
           "date": "2026-05-08",
           "sirena": 222,
@@ -16643,6 +16632,17 @@
           "garrido": 198,
           "ole": 203,
           "carrefour": 250
+        },
+        {
+          "date": "2026-06-06",
+          "sirena": 240,
+          "jumbo": 233,
+          "nacional": 250,
+          "plazalama": 237,
+          "bravo": 218,
+          "garrido": 212,
+          "ole": 220,
+          "carrefour": 269
         }
       ]
     }

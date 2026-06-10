@@ -2424,6 +2424,161 @@ app.get("/api/pending-ingestions", async (req, res) => {
   });
 });
 
+// Helper to analyze, normalize and fetch prices/images for a new active product from a user suggestion
+async function promotePendingProductToActive(pendingProduct: any) {
+  const ai = getGeminiClient();
+  let normalized = {
+    name: pendingProduct.name,
+    brand: "Genérico",
+    category: "cuadernos",
+    description: "Artículo escolar sugerido por la comunidad y verificado por el administrador.",
+    imageKeyword: "school supplies",
+    tags: ["escolar", "útiles"],
+    estimatedPrice: 150
+  };
+
+  if (ai) {
+    try {
+      const prompt = `Analiza el siguiente nombre de artículo escolar ingresado por un usuario: "${pendingProduct.name}".
+Determina la información del producto de forma estructurada. Las categorías permitidas son exactamente: "cuadernos", "escritura", "mochilas", "arte", "tecnologia".
+Genera una respuesta JSON con el siguiente formato:
+{
+  "name": "Nombre normalizado en mayúsculas iniciales, ej: Cuaderno Mascot",
+  "brand": "Marca del producto (o 'Genérico' si no está clara)",
+  "category": "Una de las 5 categorías",
+  "description": "Una breve descripción de una o dos oraciones en español.",
+  "imageKeyword": "Palabra clave en inglés para buscar una imagen representativa en Unsplash",
+  "tags": ["etiqueta1", "etiqueta2"],
+  "estimatedPrice": 120 // Precio estimado de referencia en RD$
+}`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              brand: { type: Type.STRING },
+              category: { type: Type.STRING, enum: ["cuadernos", "escritura", "mochilas", "arte", "tecnologia"] },
+              description: { type: Type.STRING },
+              imageKeyword: { type: Type.STRING },
+              tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+              estimatedPrice: { type: Type.INTEGER }
+            },
+            required: ["name", "brand", "category", "description", "imageKeyword", "tags", "estimatedPrice"]
+          }
+        }
+      });
+
+      const parsedAI = JSON.parse(response.text.trim());
+      normalized = { ...normalized, ...parsedAI };
+    } catch (err: any) {
+      console.error("[PROMOCIÓN] Error llamando a Gemini para normalización:", err.message);
+    }
+  }
+
+  // 2. Extraer o simular precios de los supermercados dominicanos
+  let storePrices: any = null;
+  if (ai) {
+    try {
+      console.log(`[PROMOCIÓN] Buscando precios reales para el nuevo producto: ${normalized.name}`);
+      const pricePrompt = `Busca los precios dominicanos de venta reales para el útil escolar: '${normalized.name}'. Devuelve solo las estimaciones de precios (RD$) para sirena, jumbo y nacional en el formato JSON:
+{
+  "sirena": 120, // null si no se halla
+  "jumbo": 125,
+  "nacional": 130
+}`;
+      const priceResponse = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: pricePrompt,
+        config: {
+          responseMimeType: "application/json",
+          tools: [{ googleSearch: {} }],
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              sirena: { type: Type.INTEGER },
+              jumbo: { type: Type.INTEGER },
+              nacional: { type: Type.INTEGER }
+            }
+          }
+        }
+      });
+      const parsedPrices = JSON.parse(priceResponse.text.trim());
+      if (parsedPrices.sirena || parsedPrices.jumbo || parsedPrices.nacional) {
+        storePrices = parsedPrices;
+      }
+    } catch (err: any) {
+      console.error("[PROMOCIÓN] Error extrayendo precios con búsqueda en vivo:", err.message);
+    }
+  }
+
+  const basePrice = normalized.estimatedPrice || 150;
+  if (!storePrices) {
+    // Simular variaciones patronales locales si no hay API de búsqueda
+    storePrices = {
+      sirena: Math.max(15, Math.round(basePrice * (0.93 + Math.random() * 0.08))),
+      jumbo: Math.max(15, Math.round(basePrice * (0.94 + Math.random() * 0.07))),
+      nacional: Math.max(15, Math.round(basePrice * (0.96 + Math.random() * 0.08))),
+      plazalama: Math.max(15, Math.round(basePrice * (0.95 + Math.random() * 0.07))),
+      bravo: Math.max(15, Math.round(basePrice * (0.91 + Math.random() * 0.08))),
+      garrido: Math.max(15, Math.round(basePrice * (0.88 + Math.random() * 0.09))),
+      ole: Math.max(15, Math.round(basePrice * (0.89 + Math.random() * 0.08))),
+      carrefour: Math.max(15, Math.round(basePrice * (1.02 + Math.random() * 0.06)))
+    };
+  } else {
+    // Rellenar tiendas restantes a partir de las principales
+    const ref = storePrices.jumbo || storePrices.sirena || storePrices.nacional || basePrice;
+    storePrices = {
+      sirena: storePrices.sirena || Math.max(15, Math.round(ref * 0.96)),
+      jumbo: storePrices.jumbo || Math.max(15, Math.round(ref)),
+      nacional: storePrices.nacional || Math.max(15, Math.round(ref * 1.04)),
+      plazalama: Math.max(15, Math.round(ref * 0.99)),
+      bravo: Math.max(15, Math.round(ref * 0.95)),
+      garrido: Math.max(15, Math.round(ref * 0.90)),
+      ole: Math.max(15, Math.round(ref * 0.92)),
+      carrefour: Math.max(15, Math.round(ref * 1.05))
+    };
+  }
+
+  // 3. Obtener una foto representativa de Unsplash
+  const imageMap: Record<string, string> = {
+    cuadernos: "https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=600&auto=format&fit=crop",
+    escritura: "https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?q=80&w=600&auto=format&fit=crop",
+    mochilas: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=600&auto=format&fit=crop",
+    arte: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
+    tecnologia: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?q=80&w=600&auto=format&fit=crop"
+  };
+  const imageUrl = imageMap[normalized.category] || "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=600&auto=format&fit=crop";
+
+  // 4. Crear el objeto de producto final
+  const newProduct: any = {
+    id: `prod-${Date.now()}`,
+    name: normalized.name,
+    description: normalized.description,
+    price: basePrice,
+    category: normalized.category,
+    image: imageUrl,
+    rating: 4.5,
+    reviewsCount: 1,
+    stock: 50,
+    brand: normalized.brand,
+    tags: normalized.tags,
+    isFeatured: false,
+    storePrices: storePrices
+  };
+
+  newProduct.priceHistory = getInitialPriceHistory(newProduct.price, newProduct.storePrices);
+
+  // Agregar a la lista de productos activos
+  cachedProducts.push(newProduct);
+  saveProductsToCache();
+  console.log(`[PROMOCIÓN] Nuevo producto '${newProduct.name}' agregado al catálogo general.`);
+}
+
 // 1.6 API: Admin action validation on pending school or product
 app.post("/api/pending-ingestions/action", async (req, res) => {
   const { type, id, action } = req.body;
@@ -2447,8 +2602,16 @@ app.post("/api/pending-ingestions/action", async (req, res) => {
     }
   } else if (type === "PRODUCT") {
     const status = action === "APPROVE" ? "APPROVED" : "REJECTED";
+    if (action === "APPROVE") {
+      const pendingProduct = pendingProductSuggestions.find(p => p.id === id);
+      if (pendingProduct) {
+        console.log(`[ADMIN] Aprobando y promoviendo producto sugerido: ${pendingProduct.name}`);
+        await promotePendingProductToActive(pendingProduct);
+      }
+    }
     await updatePendingQueueStatus("PRODUCT", id, status);
   }
+
   
   // Refresh local cache arrays from Firestore
   const ingestions = await getPendingIngestions();
@@ -2490,6 +2653,17 @@ app.post("/api/force-midnight-sync", async (req, res) => {
 
 // 2. API: Get school articles & seasonal news
 app.get("/api/news", (req, res) => {
+  try {
+    const newsPath = path.join(process.cwd(), "news-cache.json");
+    if (fs.existsSync(newsPath)) {
+      const content = fs.readFileSync(newsPath, "utf8");
+      const articles = JSON.parse(content);
+      return res.json({ success: true, articles });
+    }
+  } catch (err) {
+    console.error("Error al cargar news-cache.json:", err);
+  }
+
   res.json({
     success: true,
     articles: [
@@ -2501,19 +2675,11 @@ app.get("/api/news", (req, res) => {
         contentMarkdown: "### Prepárate para la Temporada Escolar 2026 de forma inteligente.\n\nEn la República Dominicana, la compra de útiles escolares representa una de las actividades familiares más importantes del año. Te ofrecemos consejos respaldados por educadores para optimizar tu presupuesto:\n\n1. **Reutiliza antes de comprar:** Revisa estuches, mochilas y tijeras del año anterior.\n2. **Calidad sobre precio:** Los cuadernos cosidos Mascot, por ejemplo, evitan hojas sueltas durante el año.\n3. **Cuidado ergonómico:** Escoge mochilas con soporte lumbar acolchado para proteger la columna de tus hijos.",
         publishDate: "2026-06-01",
         author: "Dirección Académica Útiles Online"
-      },
-      {
-        id: "news-02",
-        title: "Manualidades Creativas en Primaria: El papel de la plastilina y las témperas",
-        summary: "El Ministerio de Educación resalta la importancia del desarrollo psicomotriz infantil temprano a través del modelado.",
-        imageUrl: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop",
-        contentMarkdown: "### El impacto de las artes en el desarrollo cognitivo.\n\nEl modelado con plastilina Faber-Castell activa las habilidades motoras finas y espaciales. La pintura con témperas Pelikan no tóxicas estimula visualmente y permite a los alumnos de 1ro a 5to de primaria plasmar conceptos históricos, naturales y de ciencias de forma interactiva.",
-        publishDate: "2026-05-25",
-        author: "Lcda. Mariel Santos - Educadora Infantil"
       }
     ]
   });
 });
+
 
 // 3. API: AI-powered List Scanner (Gemini-powered text-list to digital-pack converter)
 app.post("/api/scan-list", scanRateLimiter, verifyBotToken, async (req, res) => {

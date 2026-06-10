@@ -2,11 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CATEGORIES, PRODUCTS as INITIAL_PRODUCTS, SCHOOLS, GRADES, SCHOOL_LISTS_DATA } from './data';
 import { Product, CartItem, SchoolList, SchoolItem, Order } from './types';
 import { motion, AnimatePresence } from 'motion/react';
-import { AdSenseBanner } from './components/AdSenseBanner';
-import FaqsView from './components/FaqsView';
-import { db, auth, googleProvider, handleFirestoreError, OperationType } from './lib/firebase';
-import { collection, addDoc, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { signInWithPopup, signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth';
+
+const AdSenseBanner = React.lazy(() => import('./components/AdSenseBanner').then(m => ({ default: m.AdSenseBanner })));
+const FaqsView = React.lazy(() => import('./components/FaqsView'));
 import {
   Search,
   Sparkles,
@@ -205,33 +204,92 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auth changed listener & Community lists listener
+  // Dynamic AdSense Loader to improve TBT and LCP on mobile
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (u) => {
-      setAuthUser(u);
-      if (u && u.displayName) {
-        setFormCreatedBy(u.displayName);
-      }
-    });
+    const loadAdSense = () => {
+      const windowWithAds = window as any;
+      if (windowWithAds.adsenseLoaded) return;
+      windowWithAds.adsenseLoaded = true;
 
-    const path = 'communityLists';
-    const unsubSnap = onSnapshot(collection(db, path), (snapshot) => {
-      try {
-        const lists: any[] = [];
-        snapshot.forEach(docSnap => {
-          lists.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        setCommunityLists(lists);
-      } catch (err) {
-        console.error("Error loading snapshots:", err);
-      }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.GET, path);
-    });
+      const client = "ca-pub-9482819857182281";
+      const script = document.createElement('script');
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      document.head.appendChild(script);
+    };
+
+    const timer = setTimeout(loadAdSense, 3500);
+
+    const triggerLoad = () => {
+      loadAdSense();
+      clearTimeout(timer);
+      window.removeEventListener('scroll', triggerLoad);
+      window.removeEventListener('click', triggerLoad);
+      window.removeEventListener('touchstart', triggerLoad);
+    };
+
+    window.addEventListener('scroll', triggerLoad, { passive: true });
+    window.addEventListener('click', triggerLoad, { passive: true });
+    window.addEventListener('touchstart', triggerLoad, { passive: true });
 
     return () => {
-      unsubAuth();
-      unsubSnap();
+      clearTimeout(timer);
+      window.removeEventListener('scroll', triggerLoad);
+      window.removeEventListener('click', triggerLoad);
+      window.removeEventListener('touchstart', triggerLoad);
+    };
+  }, []);
+
+  // Auth changed listener & Community lists listener
+  useEffect(() => {
+    let unsubAuth: (() => void) | null = null;
+    let unsubSnap: (() => void) | null = null;
+
+    const initFirebase = async () => {
+      try {
+        const { db, auth, handleFirestoreError, OperationType } = await import('./lib/firebase');
+        const { onAuthStateChanged } = await import('firebase/auth');
+        const { collection, onSnapshot } = await import('firebase/firestore');
+
+        unsubAuth = onAuthStateChanged(auth, (u) => {
+          setAuthUser(u);
+          if (u && u.displayName) {
+            setFormCreatedBy(u.displayName);
+          }
+        });
+
+        const path = 'communityLists';
+        unsubSnap = onSnapshot(collection(db, path), (snapshot) => {
+          try {
+            const lists: any[] = [];
+            snapshot.forEach(docSnap => {
+              lists.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            setCommunityLists(lists);
+          } catch (err) {
+            console.error("Error loading snapshots:", err);
+          }
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, path);
+        });
+      } catch (err) {
+        console.error("Failed to load Firebase dynamically:", err);
+      }
+    };
+
+    const delayTimer = setTimeout(() => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        window.requestIdleCallback(() => initFirebase());
+      } else {
+        initFirebase();
+      }
+    }, 1500);
+
+    return () => {
+      clearTimeout(delayTimer);
+      if (unsubAuth) unsubAuth();
+      if (unsubSnap) unsubSnap();
     };
   }, []);
 
@@ -669,6 +727,9 @@ export default function App() {
   // Support community lists upvoting
   const handleLikeCommunityList = async (listId: string) => {
     try {
+      const { db } = await import('./lib/firebase');
+      const { doc, updateDoc } = await import('firebase/firestore');
+
       const listRef = doc(db, 'communityLists', listId);
       const updatedLists = communityLists.map(list => {
         if (list.id === listId) {
@@ -745,6 +806,8 @@ export default function App() {
     };
 
     try {
+      const { db } = await import('./lib/firebase');
+      const { collection, addDoc } = await import('firebase/firestore');
       await addDoc(collection(db, 'communityLists'), newListDoc);
       showToast("¡Lista creada con éxito! Gracias por ayudar a la comunidad escolar.", "success");
       
@@ -1337,11 +1400,13 @@ export default function App() {
           </div>
 
           {/* AdSense Leaderboard Horizontal Banner */}
-          <AdSenseBanner 
-            slot="1928472910" 
-            format="horizontal" 
-            label="Anuncio Patrocinado - Ofertas de Útiles Escolares RD" 
-          />
+          <React.Suspense fallback={<div className="animate-pulse bg-slate-100 h-24 w-full rounded-lg my-4 border border-slate-200"></div>}>
+            <AdSenseBanner 
+              slot="1928472910" 
+              format="horizontal" 
+              label="Anuncio Patrocinado - Ofertas de Útiles Escolares RD" 
+            />
+          </React.Suspense>
 
           {/* VIEW RENDERERS */}
 
@@ -2209,11 +2274,13 @@ export default function App() {
                       </div>
                       {(index + 1) % 8 === 0 && (
                         <div className="col-span-1 sm:col-span-2 md:col-span-3">
-                          <AdSenseBanner
-                            slot={`infeed-${index}`}
-                            format="horizontal"
-                            label="Anuncio Patrocinado - Catálogo"
-                          />
+                          <React.Suspense fallback={<div className="animate-pulse bg-slate-100 h-24 w-full rounded-lg my-4 border border-slate-200"></div>}>
+                            <AdSenseBanner
+                              slot={`infeed-${index}`}
+                              format="horizontal"
+                              label="Anuncio Patrocinado - Catálogo"
+                            />
+                          </React.Suspense>
                         </div>
                       )}
                     </React.Fragment>
@@ -2237,7 +2304,9 @@ export default function App() {
 
           {/* TAB 4: HELP & FAQS */}
           {activeTab === 'faqs' && (
-            <FaqsView />
+            <React.Suspense fallback={<div className="animate-pulse bg-slate-100 h-96 w-full rounded-2xl border border-slate-200"></div>}>
+              <FaqsView />
+            </React.Suspense>
           )}
 
           {/* TAB 4.5: ADMIN INTELLIGENCE & AUDIT LANDING */}
@@ -2670,6 +2739,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                              aria-label="Disminuir cantidad"
                               className="text-slate-500 hover:text-slate-800 w-4 h-4 font-bold flex items-center justify-center bg-white rounded shadow-2xs transition-colors text-xs"
                             >
                               -
@@ -2678,6 +2748,7 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                              aria-label="Aumentar cantidad"
                               className="text-slate-500 hover:text-slate-800 w-4 h-4 font-bold flex items-center justify-center bg-white rounded shadow-2xs transition-colors text-xs"
                             >
                               +
@@ -2687,6 +2758,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(item.product.id)}
+                            aria-label={`Quitar ${item.product.name} del carrito`}
                             className="text-[9px] font-bold text-red-500 hover:text-red-750 flex items-center gap-0.5 select-none mt-1"
                           >
                             <Trash2 className="w-3 h-3" /> Quitar
@@ -2972,12 +3044,14 @@ export default function App() {
               <X className="w-3 h-3" />
             </button>
           </div>
-          <AdSenseBanner
-            slot="mobile-anchor-ad"
-            format="horizontal"
-            className="my-0"
-            label="Anuncio Móvil Anclado"
-          />
+          <React.Suspense fallback={<div className="h-[90px] w-full bg-slate-900 border border-slate-200"></div>}>
+            <AdSenseBanner
+              slot="mobile-anchor-ad"
+              format="horizontal"
+              className="my-0"
+              label="Anuncio Móvil Anclado"
+            />
+          </React.Suspense>
         </div>
       )}
 
@@ -3472,6 +3546,8 @@ export default function App() {
                         type="button"
                         onClick={async () => {
                           try {
+                            const { auth, googleProvider } = await import('./lib/firebase');
+                            const { signInWithPopup } = await import('firebase/auth');
                             await signInWithPopup(auth, googleProvider);
                           } catch (e) {
                             console.error("Auth popup error", e);
@@ -3640,6 +3716,7 @@ export default function App() {
                                   [prod.id]: Math.max(0, (prev[prod.id] || 0) - 1),
                                 }));
                               }}
+                              aria-label={`Disminuir cantidad de ${prod.name}`}
                               className="px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-500 border-r border-slate-200 transition-all font-bold"
                             >
                               -
@@ -3655,6 +3732,7 @@ export default function App() {
                                   [prod.id]: (prev[prod.id] || 0) + 1,
                                 }));
                               }}
+                              aria-label={`Aumentar cantidad de ${prod.name}`}
                               className="px-2 py-1 bg-slate-50 hover:bg-slate-100 text-slate-500 border-l border-slate-200 transition-all font-bold"
                             >
                               +
