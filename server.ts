@@ -259,6 +259,12 @@ async function triggerMidnightPriceSync(forced = false) {
 
 
 const app = express();
+app.use((req, res, next) => {
+  if (req.hostname.toLowerCase() === "www.utilesonline.com") {
+    return res.redirect(301, `https://utilesonline.com${req.originalUrl}`);
+  }
+  next();
+});
 app.use(compression());
 app.use(express.json());
 app.use(requestLogger);
@@ -3227,6 +3233,15 @@ async function startServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
+      const cleanPath = req.path.replace(/\/+$/, "") || "/";
+      const isClientRoute = cleanPath === "/" || /^\/lista-utiles\/[^/]+$/.test(cleanPath);
+      if (!isClientRoute) {
+        return res.status(404).type("text/html").send(`<!doctype html>
+<html lang="es-DO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,follow"><title>Página no encontrada | Útiles Online</title></head>
+<body><main><h1>Página no encontrada</h1><p>La dirección solicitada no existe.</p>
+<p><a href="/">Volver a Útiles Online</a></p></main></body></html>`);
+      }
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
