@@ -268,7 +268,7 @@ app.use((req, res, next) => {
 app.use(compression());
 app.use(express.json());
 app.use(requestLogger);
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Google AdSense Publisher Client ID loaded from environment variable
 const ADSENSE_CLIENT_ID = process.env.ADSENSE_CLIENT_ID || "ca-pub-9482819857182281";
