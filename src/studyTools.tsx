@@ -48,6 +48,17 @@ export const EXTRA_TOOL_CATALOG: ExtraToolCatalogItem[] = [
   { slug: "registro-de-errores", title: "Registro de errores", short: "Guarda ejercicios fallidos, correcciones y fechas de repetición.", category: "Estudio", color: "blue" },
   { slug: "organizador-investigacion", title: "Organizador de investigación", short: "Reúne fuentes, citas, ideas y referencias por tema.", category: "Escritura", color: "violet" },
   { slug: "panel-academico", title: "Panel académico personal", short: "Consulta materias, tareas, hábitos, próximos eventos y progreso.", category: "Organización", color: "cyan" }
+  ,{ slug: "calculadora-regla-de-tres", title: "Calculadora de regla de tres", short: "Resuelve proporciones directas paso a paso y comprueba la fórmula.", category: "Matemáticas", color: "violet" }
+  ,{ slug: "media-mediana-moda", title: "Media, mediana y moda", short: "Analiza una lista de números con media, mediana, moda, rango y desviación.", category: "Matemáticas", color: "cyan" }
+  ,{ slug: "calculadora-dias-entre-fechas", title: "Días entre fechas", short: "Calcula días naturales, semanas y días lectivos aproximados entre dos fechas.", category: "Organización", color: "blue" }
+  ,{ slug: "conversor-numeros-romanos", title: "Conversor de números romanos", short: "Convierte números enteros a romanos y aprende las reglas de escritura.", category: "Matemáticas", color: "orange" }
+  ,{ slug: "calculadora-areas-perimetros", title: "Áreas y perímetros", short: "Calcula círculo, rectángulo y triángulo con fórmula y unidades.", category: "Matemáticas", color: "green" }
+  ,{ slug: "calculadora-volumenes", title: "Calculadora de volúmenes", short: "Calcula el volumen de cubos, prismas, cilindros y esferas.", category: "Matemáticas", color: "pink" }
+  ,{ slug: "generador-tablas-multiplicar", title: "Tablas de multiplicar", short: "Genera tablas de multiplicar listas para practicar o imprimir.", category: "Matemáticas", color: "blue" }
+  ,{ slug: "corrector-texto-basico", title: "Corrector básico de texto", short: "Detecta espacios, repeticiones y signos básicos sin enviar tu texto.", category: "Escritura", color: "violet" }
+  ,{ slug: "resumidor-texto-extractivo", title: "Resumidor de texto", short: "Extrae las oraciones más representativas de un texto de forma local.", category: "Escritura", color: "cyan" }
+  ,{ slug: "generador-citas-mla-chicago", title: "Citas MLA y Chicago", short: "Crea referencias básicas de libros y páginas web en MLA o Chicago.", category: "Escritura", color: "orange" }
+  ,{ slug: "plantillas-trabajos-academicos", title: "Plantillas académicas", short: "Estructura ensayos, informes y exposiciones con secciones editables.", category: "Escritura", color: "green" }
 ];
 
 export type ToolSeoDetails = {
@@ -59,18 +70,21 @@ export type ToolSeoDetails = {
 
 export function getToolSeoDetails(tool: ExtraToolCatalogItem): ToolSeoDetails {
   const calculator = tool.category === "Cálculo académico" || tool.category === "Matemáticas";
+  const mathematics = tool.category === "Matemáticas";
   const teacher = tool.category === "Docentes";
   return {
     purpose: calculator
-      ? `Esta calculadora de ${tool.title.toLowerCase()} transforma tus datos en un resultado inmediato y muestra el método para que puedas comprobarlo.`
+      ? `${tool.title} transforma tus datos en un resultado inmediato y muestra el método para que puedas comprobarlo.`
       : teacher
         ? `Este recurso de ${tool.title.toLowerCase()} ayuda a preparar una actividad de clase clara, reutilizable e imprimible.`
         : `${tool.title} organiza la información directamente en tu navegador para que puedas estudiar con un proceso claro y repetible.`,
     steps: calculator
       ? ["Introduce valores válidos en cada campo.", "Revisa el resultado y la explicación del cálculo.", "Compara el resultado con las reglas de tu institución antes de usarlo."]
       : ["Completa los campos con la información de tu actividad.", "Revisa y ajusta el contenido generado.", "Imprime, guarda como PDF o comparte el recurso terminado."],
-    tips: calculator
-      ? ["Usa la misma escala de calificación en todos los datos.", "No redondees valores intermedios; redondea solo el resultado final.", "Prueba varios escenarios para tomar una decisión mejor informada."]
+    tips: mathematics
+      ? ["Comprueba que todos los valores usan unidades compatibles.", "No redondees valores intermedios; redondea solo el resultado final.", "Repite el procedimiento manualmente para comprender la fórmula."]
+      : calculator
+        ? ["Usa la misma escala de calificación en todos los datos.", "No redondees valores intermedios; redondea solo el resultado final.", "Prueba varios escenarios para tomar una decisión mejor informada."]
       : ["Empieza con datos concretos y un objetivo definido.", "Guarda o imprime una copia antes de cambiar información importante.", "Adapta el resultado al nivel y las reglas de tu curso."],
     faqs: [
       { question: `¿${tool.title} es gratis?`, answer: "Sí. La herramienta se puede usar gratis y sin crear una cuenta." },
@@ -108,6 +122,8 @@ function Shell({ slug, header, footer, children }: { slug: string; header: React
     document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://utilesonline.com/${slug}`);
     const win = window as Window & { dataLayer?: Record<string, unknown>[] };
     win.dataLayer = win.dataLayer || []; win.dataLayer.push({ event: "view_tool", tool: slug, category: tool.category });
+    const recent = JSON.parse(localStorage.getItem("uo-recent-tools") || "[]") as string[];
+    localStorage.setItem("uo-recent-tools", JSON.stringify([slug, ...recent.filter(item => item !== slug)].slice(0, 8)));
   }, [slug, tool]);
   const share = async () => {
     if (navigator.share) await navigator.share({ title: tool.title, text: tool.short, url: location.href });
@@ -199,6 +215,64 @@ function SimpleCalculator({ mode }: { mode: "graduation" | "gpa" | "fraction" | 
   return <><div className="extra-form">{mode === "graduation" ? <><label>Año de inicio<input type="number" value={a} onChange={e => setA(number(e.target.value))} /></label><label>Duración en años<input type="number" value={b} onChange={e => setB(number(e.target.value))} /></label></> : <><label>{mode === "equation" ? "Coeficiente a" : "Valor A"}<input type="number" step=".01" value={a} onChange={e => setA(number(e.target.value))} /></label><label>{mode === "equation" ? "Constante b" : "Valor B"}<input type="number" step=".01" value={b} onChange={e => setB(number(e.target.value))} /></label>{["equation", "percentage", "fraction"].includes(mode) && <label>Valor C<input type="number" step=".01" value={c} onChange={e => setC(number(e.target.value))} /></label>}{mode === "fraction" && <label>Operación<select value={operation} onChange={e => setOperation(e.target.value)}><option>+</option><option>-</option><option>×</option><option>÷</option></select></label>}</>}</div><Result label="Resultado" value={value} detail={detail} /></>;
 }
 
+function PermanentDemandTool({ slug }: { slug: string }) {
+  const [a, setA] = useState(3); const [b, setB] = useState(5); const [c, setC] = useState(15);
+  const [text, setText] = useState(""); const [shape, setShape] = useState(slug === "calculadora-volumenes" ? "prisma" : "rectángulo"); const [style, setStyle] = useState("MLA");
+  const [start, setStart] = useState(new Date().toISOString().slice(0, 10)); const [end, setEnd] = useState(() => new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10));
+  const [history, setHistory] = useStored<{ date: string; value: string }[]>(`uo-history-${slug}`, []);
+  const complete = (value: string) => {
+    setHistory([{ date: new Date().toLocaleDateString("es"), value }, ...history].slice(0, 6));
+    const win = window as Window & { dataLayer?: Record<string, unknown>[] }; win.dataLayer = win.dataLayer || []; win.dataLayer.push({ event: "calculation_complete", tool: slug });
+  };
+  if (slug === "calculadora-regla-de-tres") {
+    const value = b ? a * c / b : 0;
+    return <><div className="extra-form"><label>Si A vale<input type="number" value={a} onChange={e => setA(number(e.target.value))} /></label><label>Corresponde a B<input type="number" value={b} onChange={e => setB(number(e.target.value))} /></label><label>¿Cuánto corresponde a C?<input type="number" value={c} onChange={e => setC(number(e.target.value))} /></label></div><Result label="Resultado proporcional" value={value.toFixed(4).replace(/\.?0+$/, "")} detail={`x = (${a} × ${c}) ÷ ${b || 1}`} /><ToolResultActions value={String(value)} onSave={complete} history={history} /></>;
+  }
+  if (slug === "media-mediana-moda") {
+    const values = text.split(/[\s,;]+/).map(Number).filter(Number.isFinite).sort((x, y) => x - y); const mean = values.length ? values.reduce((x, y) => x + y, 0) / values.length : 0; const median = values.length ? (values[Math.floor((values.length - 1) / 2)] + values[Math.ceil((values.length - 1) / 2)]) / 2 : 0; const counts = values.reduce<Record<string, number>>((map, value) => ({ ...map, [value]: (map[value] || 0) + 1 }), {}); const mode = Object.entries(counts).sort((x, y) => y[1] - x[1])[0]; const deviation = values.length ? Math.sqrt(values.reduce((sum, value) => sum + (value - mean) ** 2, 0) / values.length) : 0;
+    return <><div className="extra-text-panel"><label>Números separados por coma<textarea value={text} onChange={e => setText(e.target.value)} placeholder="8, 10, 10, 12, 15" /></label></div><div className="metric-grid"><div><strong>{mean.toFixed(2)}</strong><span>Media</span></div><div><strong>{median}</strong><span>Mediana</span></div><div><strong>{mode?.[1] > 1 ? mode[0] : "Sin moda"}</strong><span>Moda</span></div><div><strong>{deviation.toFixed(2)}</strong><span>Desviación</span></div></div><ToolResultActions value={`Media ${mean.toFixed(2)}`} onSave={complete} history={history} /></>;
+  }
+  if (slug === "calculadora-dias-entre-fechas") {
+    const days = Math.max(0, Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / 86400000)); const weekdays = Array.from({ length: days }, (_, i) => new Date(new Date(start).getTime() + (i + 1) * 86400000)).filter(date => date.getDay() !== 0 && date.getDay() !== 6).length;
+    return <><div className="extra-form"><label>Fecha inicial<input type="date" value={start} onChange={e => setStart(e.target.value)} /></label><label>Fecha final<input type="date" min={start} value={end} onChange={e => setEnd(e.target.value)} /></label></div><Result label="Tiempo disponible" value={`${days} días`} detail={`${Math.floor(days / 7)} semanas y ${days % 7} días · ${weekdays} días de lunes a viernes.`} /><ToolResultActions value={`${days} días`} onSave={complete} history={history} /></>;
+  }
+  if (slug === "conversor-numeros-romanos") {
+    const roman = toRoman(Math.min(3999, Math.max(1, Math.round(a))));
+    return <><div className="extra-form compact"><label>Número entero (1–3999)<input type="number" min="1" max="3999" value={a} onChange={e => setA(number(e.target.value))} /></label></div><Result label="Número romano" value={roman} detail="Se aplican primero los símbolos de mayor valor y las combinaciones sustractivas." /><ToolResultActions value={roman} onSave={complete} history={history} /></>;
+  }
+  if (slug === "calculadora-areas-perimetros" || slug === "calculadora-volumenes") {
+    const volume = slug === "calculadora-volumenes"; let value = 0; let formula = "";
+    if (!volume && shape === "rectángulo") { value = a * b; formula = `Área = ${a} × ${b}`; } else if (!volume && shape === "círculo") { value = Math.PI * a ** 2; formula = `Área = π × ${a}²`; } else if (!volume) { value = a * b / 2; formula = `Área = (${a} × ${b}) ÷ 2`; }
+    else if (shape === "cubo") { value = a ** 3; formula = `Volumen = ${a}³`; } else if (shape === "cilindro") { value = Math.PI * a ** 2 * b; formula = `Volumen = π × ${a}² × ${b}`; } else if (shape === "esfera") { value = 4 / 3 * Math.PI * a ** 3; formula = `Volumen = 4/3 × π × ${a}³`; } else { value = a * b * c; formula = `Volumen = ${a} × ${b} × ${c}`; }
+    const shapes = volume ? ["prisma", "cubo", "cilindro", "esfera"] : ["rectángulo", "círculo", "triángulo"];
+    return <><div className="extra-form"><label>Figura<select value={shape} onChange={e => setShape(e.target.value)}>{shapes.map(item => <option key={item}>{item}</option>)}</select></label><label>{["círculo", "cilindro", "esfera"].includes(shape) ? "Radio" : "Base o lado"}<input type="number" min="0" value={a} onChange={e => setA(number(e.target.value))} /></label>{!["círculo", "cubo", "esfera"].includes(shape) && <label>Altura o ancho<input type="number" min="0" value={b} onChange={e => setB(number(e.target.value))} /></label>}{shape === "prisma" && <label>Profundidad<input type="number" min="0" value={c} onChange={e => setC(number(e.target.value))} /></label>}</div><Result label={volume ? "Volumen" : "Área"} value={`${value.toFixed(2)} u${volume ? "³" : "²"}`} detail={formula} /><ToolResultActions value={String(value)} onSave={complete} history={history} /></>;
+  }
+  if (slug === "generador-tablas-multiplicar") return <><div className="extra-form compact"><label>Tabla del<input type="number" min="1" max="100" value={a} onChange={e => setA(number(e.target.value))} /></label><label>Hasta<input type="number" min="5" max="30" value={c} onChange={e => setC(number(e.target.value))} /></label></div><div className="worksheet">{Array.from({ length: Math.max(1, c) }, (_, i) => <div key={i}><strong>{a} × {i + 1} = _____</strong><small>Respuesta: {a * (i + 1)}</small></div>)}</div></>;
+  if (slug === "corrector-texto-basico") {
+    const corrected = text.replace(/[ \t]+/g, " ").replace(/\s+([,.;!?])/g, "$1").replace(/([.!?])([A-Za-zÁÉÍÓÚÑáéíóúñ])/g, "$1 $2").trim(); const issues = Math.max(0, text.length - corrected.length);
+    return <><div className="text-comparison"><textarea value={text} onChange={e => setText(e.target.value)} placeholder="Pega el texto original…" /><textarea value={corrected} readOnly aria-label="Texto corregido" /></div><Result label="Revisión básica" value={`${issues} ajustes`} detail="Se corrigieron espacios y separación de signos; revisa ortografía y contexto manualmente." /></>;
+  }
+  if (slug === "resumidor-texto-extractivo") {
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || []; const keywords = text.toLowerCase().split(/\W+/).filter(word => word.length > 5); const summary = sentences.map(sentence => ({ sentence, score: keywords.filter(word => sentence.toLowerCase().includes(word)).length })).sort((x, y) => y.score - x.score).slice(0, Math.max(1, Math.ceil(sentences.length * .3))).map(item => item.sentence.trim()).join(" ");
+    return <><div className="text-comparison"><textarea value={text} onChange={e => setText(e.target.value)} placeholder="Pega un texto de varias oraciones…" /><textarea value={summary} readOnly aria-label="Resumen extraído" /></div><p className="method-note">Este resumen selecciona oraciones del texto original; no inventa ni reescribe información.</p></>;
+  }
+  if (slug === "generador-citas-mla-chicago") {
+    const parts = text.split("|").map(item => item.trim()); const [author = "Apellido, Nombre", title = "Título", source = "Sitio o editorial", year = "s. f.", url = ""] = parts; const citation = style === "MLA" ? `${author}. “${title}”. ${source}, ${year}, ${url}.` : `${author}. “${title}”. ${source}. ${year}. ${url}.`;
+    return <><div className="extra-form"><label>Estilo<select value={style} onChange={e => setStyle(e.target.value)}><option>MLA</option><option>Chicago</option></select></label><label className="wide">Autor | título | sitio/editorial | año | URL<textarea value={text} onChange={e => setText(e.target.value)} /></label></div><div className="output-box"><h2>Referencia generada</h2><p>{citation}</p><button onClick={() => navigator.clipboard.writeText(citation)}>Copiar</button></div></>;
+  }
+  const sections = style === "Ensayo" ? ["Introducción y tesis", "Argumento principal", "Evidencia y análisis", "Contraargumento", "Conclusión"] : style === "Informe" ? ["Objetivo", "Metodología", "Resultados", "Análisis", "Conclusiones"] : ["Apertura", "Problema", "Ideas principales", "Ejemplo", "Cierre"];
+  return <><div className="extra-form compact"><label>Tipo de trabajo<select value={style} onChange={e => setStyle(e.target.value)}><option>Ensayo</option><option>Informe</option><option>Exposición</option></select></label><label>Tema<input value={text} onChange={e => setText(e.target.value)} placeholder="Tema del trabajo" /></label></div><div className="template-outline">{sections.map((section, i) => <label key={section}><strong>{i + 1}. {section}</strong><textarea placeholder={`Desarrolla ${section.toLowerCase()} sobre ${text || "tu tema"}…`} /></label>)}</div></>;
+}
+
+function ToolResultActions({ value, onSave, history }: { value: string; onSave: (value: string) => void; history: { date: string; value: string }[] }) {
+  return <div className="calculation-tools"><div className="extra-actions"><button onClick={() => navigator.clipboard.writeText(value)}>Copiar resultado</button><button onClick={() => onSave(value)}><Save /> Guardar</button><button onClick={() => window.print()}><Printer /> PDF</button></div>{history.length > 0 && <div className="mini-history"><strong>Historial reciente</strong>{history.map((item, index) => <span key={`${item.date}-${index}`}>{item.date}<b>{item.value}</b></span>)}</div>}</div>;
+}
+
+function toRoman(value: number) {
+  const pairs: [number, string][] = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let remaining = value; return pairs.map(([amount, symbol]) => { const count = Math.floor(remaining / amount); remaining %= amount; return symbol.repeat(count); }).join("");
+}
+
 function PeriodicTable() {
   const elements = [
     ["H", "Hidrógeno", 1, "1.008", "No metal"], ["He", "Helio", 2, "4.003", "Gas noble"], ["Li", "Litio", 3, "6.94", "Alcalino"], ["C", "Carbono", 6, "12.011", "No metal"], ["N", "Nitrógeno", 7, "14.007", "No metal"], ["O", "Oxígeno", 8, "15.999", "No metal"], ["Na", "Sodio", 11, "22.990", "Alcalino"], ["Mg", "Magnesio", 12, "24.305", "Alcalinotérreo"], ["Al", "Aluminio", 13, "26.982", "Metal"], ["Si", "Silicio", 14, "28.085", "Metaloide"], ["Cl", "Cloro", 17, "35.45", "Halógeno"], ["K", "Potasio", 19, "39.098", "Alcalino"], ["Ca", "Calcio", 20, "40.078", "Alcalinotérreo"], ["Fe", "Hierro", 26, "55.845", "Metal"], ["Cu", "Cobre", 29, "63.546", "Metal"], ["Zn", "Zinc", 30, "65.38", "Metal"], ["Ag", "Plata", 47, "107.868", "Metal"], ["Au", "Oro", 79, "196.967", "Metal"]
@@ -225,9 +299,9 @@ function AttendanceRegister() {
 }
 
 function WorksheetGenerator() {
-  const [count, setCount] = useState(12); const [maximum, setMaximum] = useState(20); const [operation, setOperation] = useState("+"); const [seed, setSeed] = useState(1);
+  const [count, setCount] = useState(12); const [maximum, setMaximum] = useState(20); const [operation, setOperation] = useState("+"); const [seed, setSeed] = useState(1); const [paper, setPaper] = useState("A4"); const [showAnswers, setShowAnswers] = useState(false); const [student, setStudent] = useState("");
   const exercises = useMemo(() => Array.from({ length: count }, (_, index) => { const a = (index * 7 + seed * 3) % maximum + 1; const b = (index * 5 + seed * 2) % maximum + 1; const answer = operation === "+" ? a + b : operation === "-" ? a - b : operation === "×" ? a * b : Number((a / b).toFixed(2)); return { a, b, answer }; }), [count, maximum, operation, seed]);
-  return <><div className="extra-form compact"><label>Cantidad<input type="number" min="4" max="40" value={count} onChange={e => setCount(number(e.target.value))} /></label><label>Número máximo<input type="number" min="5" value={maximum} onChange={e => setMaximum(number(e.target.value))} /></label><label>Operación<select value={operation} onChange={e => setOperation(e.target.value)}><option>+</option><option>-</option><option>×</option><option>÷</option></select></label></div><div className="worksheet">{exercises.map((exercise, index) => <div key={index}><strong>{index + 1}. {exercise.a} {operation} {exercise.b} = _____</strong><small>Respuesta: {exercise.answer}</small></div>)}</div><div className="extra-actions"><button onClick={() => setSeed(seed + 1)}><RotateCcw /> Nueva hoja</button><button onClick={() => window.print()}><Download /> Imprimir</button></div></>;
+  return <><div className="extra-form compact"><label>Nombre / curso<input value={student} onChange={e => setStudent(e.target.value)} placeholder="Nombre, curso o docente" /></label><label>Cantidad<input type="number" min="4" max="40" value={count} onChange={e => setCount(Math.min(40, Math.max(4, number(e.target.value))))} /></label><label>Número máximo<input type="number" min="5" value={maximum} onChange={e => setMaximum(Math.max(5, number(e.target.value)))} /></label><label>Operación<select value={operation} onChange={e => setOperation(e.target.value)}><option>+</option><option>-</option><option>×</option><option>÷</option></select></label><label>Papel<select value={paper} onChange={e => setPaper(e.target.value)}><option>A4</option><option>Carta</option></select></label><label className="switch-row"><input type="checkbox" checked={showAnswers} onChange={e => setShowAnswers(e.target.checked)} /> Mostrar respuestas</label></div><div className={`worksheet paper-${paper.toLowerCase()}`}><header><strong>{student || "Hoja de ejercicios"}</strong><span>Versión {seed % 2 ? "A" : "B"} · Fecha: __________</span></header>{exercises.map((exercise, index) => <div key={index}><strong>{index + 1}. {exercise.a} {operation} {exercise.b} = _____</strong><small className={showAnswers ? "show-answer" : ""}>Respuesta: {exercise.answer}</small></div>)}</div><div className="extra-actions"><button onClick={() => setSeed(seed + 1)}><RotateCcw /> Crear versión {seed % 2 ? "B" : "A"}</button><button onClick={() => window.print()}><Download /> Imprimir / PDF</button></div></>;
 }
 
 function PresentationTimer() {
@@ -304,6 +378,7 @@ export function StudyToolPage({ slug, header, footer }: { slug: string; header: 
   else if (slug === "rastreador-habitos-estudio") content = <HabitTracker />;
   else if (slug === "apuntes-cornell") content = <CornellNotes />;
   else if (slug === "panel-academico") content = <AcademicDashboard />;
+  else if (["calculadora-regla-de-tres", "media-mediana-moda", "calculadora-dias-entre-fechas", "conversor-numeros-romanos", "calculadora-areas-perimetros", "calculadora-volumenes", "generador-tablas-multiplicar", "corrector-texto-basico", "resumidor-texto-extractivo", "generador-citas-mla-chicago", "plantillas-trabajos-academicos"].includes(slug)) content = <PermanentDemandTool slug={slug} />;
   else content = <p>Herramienta no disponible.</p>;
   return <Shell slug={slug} header={header} footer={footer}>{content}</Shell>;
 }

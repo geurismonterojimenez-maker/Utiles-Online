@@ -37,7 +37,17 @@ export function initializeMeasurement() {
       if (last) push({ event: "web_vital", metric_name: "LCP", metric_value: Math.round(last.startTime), page_path: location.pathname });
     }).observe({ type: "largest-contentful-paint", buffered: true });
 
-    window.addEventListener("pagehide", () => push({ event: "web_vital", metric_name: "CLS", metric_value: Number(cls.toFixed(4)), page_path: location.pathname }), { once: true });
+    let inp = 0;
+    new PerformanceObserver(list => {
+      for (const entry of list.getEntries() as (PerformanceEntry & { duration: number; interactionId?: number })[]) {
+        if (entry.interactionId && entry.duration > inp) inp = entry.duration;
+      }
+    }).observe({ type: "event", buffered: true, durationThreshold: 40 } as PerformanceObserverInit);
+
+    window.addEventListener("pagehide", () => {
+      push({ event: "web_vital", metric_name: "CLS", metric_value: Number(cls.toFixed(4)), page_path: location.pathname });
+      if (inp) push({ event: "web_vital", metric_name: "INP", metric_value: Math.round(inp), page_path: location.pathname });
+    }, { once: true });
   } catch {
     // Algunos navegadores no exponen todas las métricas.
   }

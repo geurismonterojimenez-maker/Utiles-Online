@@ -182,6 +182,7 @@ function Home() {
   const [category, setCategory] = useState("Todas");
   const [toolLimit, setToolLimit] = useState(18);
   const [favorites, setFavorites] = useState<string[]>(() => JSON.parse(localStorage.getItem("uo-favorites") || "[]"));
+  const recent = (JSON.parse(localStorage.getItem("uo-recent-tools") || "[]") as string[]).map(slug => TOOLS.find(tool => tool.slug === slug)).filter((tool): tool is Tool => Boolean(tool)).slice(0, 4);
   const categories = ["Todas", ...Array.from(new Set(TOOLS.map(t => t.category)))];
   const visible = TOOLS.filter(t => (category === "Todas" || t.category === category) && `${t.title} ${t.short}`.toLowerCase().includes(query.toLowerCase()));
   const shownTools = query || category !== "Todas" ? visible : visible.slice(0, toolLimit);
@@ -213,6 +214,7 @@ function Home() {
       {!query && category === "Todas" && toolLimit < visible.length && <button className="load-more-tools" onClick={() => setToolLimit(toolLimit + 18)}>Mostrar más herramientas ({visible.length - toolLimit})</button>}
       {!visible.length && <div className="empty-state"><Search /><h3>No encontramos esa herramienta</h3><p>Prueba con “notas”, “texto”, “horario” o selecciona otra categoría.</p></div>}
     </section>
+    {recent.length > 0 && <section className="recent-tools"><div className="section-heading"><div><span className="eyebrow">Tu actividad</span><h2>Usadas recientemente</h2></div><p>Continúa donde lo dejaste en este dispositivo.</p></div><div className="tool-grid compact">{recent.map(tool => <ToolCard key={tool.slug} tool={tool} />)}</div></section>}
     <section className="audience" id="para-estudiantes">
       <div><span className="eyebrow">Para estudiantes</span><h2>Menos tiempo calculando.<br />Más tiempo aprendiendo.</h2><p>Cada herramienta explica el resultado para que puedas entenderlo, no solo copiarlo.</p>
         <ul><li><CheckCircle2 /> Resultados instantáneos y fáciles de interpretar</li><li><CheckCircle2 /> Datos procesados únicamente en tu dispositivo</li><li><CheckCircle2 /> Diseñado para secundaria y universidad</li></ul>
