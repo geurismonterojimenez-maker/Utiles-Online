@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight, BookOpen, Calculator, CalendarDays, CheckCircle2, Clock3,
-  Download, FileText, GraduationCap, Heart, Menu, Moon, Quote, Save, Search,
-  Share2, Sparkles, Sun, Trash2, Type, X
+  Accessibility, BarChart3, Download, FileText, GraduationCap, Heart, Menu, Moon, Quote, Save, Search,
+  Settings2, Share2, Sparkles, Sun, Trash2, Type, X
 } from "lucide-react";
+import { CONTENT, GUIDE_SLUGS } from "./content";
 
 type Tool = {
   slug: string;
@@ -44,6 +45,8 @@ const saveFile = (name: string, content: string, type = "text/plain") => {
   link.click();
   URL.revokeObjectURL(link.href);
 };
+const encodeState = (value: unknown) => btoa(encodeURIComponent(JSON.stringify(value)));
+const decodeState = <T,>(value: string): T => JSON.parse(decodeURIComponent(atob(value))) as T;
 
 function useMetadata(tool?: Tool) {
   useEffect(() => {
@@ -65,13 +68,33 @@ function useMetadata(tool?: Tool) {
   }, [tool]);
 }
 
+function usePageMetadata(title: string, description: string, slug: string) {
+  useEffect(() => {
+    document.title = `${title} | Útiles Online`;
+    const values: [string, string][] = [
+      ['meta[name="description"]', description],
+      ['meta[property="og:title"]', `${title} | Útiles Online`],
+      ['meta[property="og:description"]', description],
+      ['meta[property="og:url"]', `https://utilesonline.com/${slug}`]
+    ];
+    values.forEach(([selector, value]) => document.querySelector(selector)?.setAttribute("content", value));
+    document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://utilesonline.com/${slug}`);
+  }, [title, description, slug]);
+}
+
 function Header() {
   const [open, setOpen] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [dark, setDark] = useState(() => localStorage.getItem("uo-theme") === "dark");
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     localStorage.setItem("uo-theme", dark ? "dark" : "light");
   }, [dark]);
+  useEffect(() => {
+    document.documentElement.dataset.fontSize = localStorage.getItem("uo-font-size") || "normal";
+    document.documentElement.dataset.contrast = localStorage.getItem("uo-contrast") || "normal";
+    document.documentElement.dataset.motion = localStorage.getItem("uo-motion") || "normal";
+  }, []);
   return (
     <header className="site-header">
       <a className="brand" href="/" aria-label="Útiles Online, inicio">
@@ -85,11 +108,42 @@ function Header() {
         <a href="/guias">Guías</a>
       </nav>
       <div className="header-actions">
+        <button className="icon-button" onClick={() => setPreferencesOpen(true)} aria-label="Preferencias y accesibilidad"><Settings2 size={19} /></button>
         <button className="icon-button" onClick={() => setDark(!dark)} aria-label="Cambiar tema">{dark ? <Sun size={19} /> : <Moon size={19} />}</button>
         <button className="menu-button" onClick={() => setOpen(!open)} aria-label="Abrir menú">{open ? <X /> : <Menu />}</button>
       </div>
+      {preferencesOpen && <PreferencesPanel onClose={() => setPreferencesOpen(false)} />}
+      <ConsentBanner />
     </header>
   );
+}
+
+function ConsentBanner() {
+  const [visible, setVisible] = useState(() => !localStorage.getItem("uo-consent"));
+  const decide = (accepted: boolean) => {
+    localStorage.setItem("uo-consent", accepted ? "accepted" : "rejected");
+    const consent = accepted ? "granted" : "denied";
+    const win = window as Window & { gtag?: (...args: unknown[]) => void };
+    win.gtag?.("consent", "update", { ad_storage: consent, analytics_storage: consent, ad_user_data: consent, ad_personalization: consent });
+    window.dispatchEvent(new Event("uo-consent-change"));
+    setVisible(false);
+  };
+  if (!visible) return null;
+  return <aside className="consent-banner" aria-label="Preferencias de privacidad"><div><strong>Tu privacidad importa</strong><p>Usamos medición y publicidad de Google para mejorar y mantener gratuitas las herramientas. Puedes aceptar o continuar sin cookies de medición y anuncios personalizados.</p><a href="/privacidad">Leer política de privacidad</a></div><div><button className="button secondary" onClick={() => decide(false)}>Rechazar</button><button className="button primary" onClick={() => decide(true)}>Aceptar</button></div></aside>;
+}
+
+function PreferencesPanel({ onClose }: { onClose: () => void }) {
+  const [country, setCountry] = useState(() => localStorage.getItem("uo-country") || "DO");
+  const [fontSize, setFontSize] = useState(() => localStorage.getItem("uo-font-size") || "normal");
+  const [contrast, setContrast] = useState(() => localStorage.getItem("uo-contrast") === "high");
+  const [reducedMotion, setReducedMotion] = useState(() => localStorage.getItem("uo-motion") === "reduced");
+  useEffect(() => {
+    document.documentElement.dataset.fontSize = fontSize;
+    document.documentElement.dataset.contrast = contrast ? "high" : "normal";
+    document.documentElement.dataset.motion = reducedMotion ? "reduced" : "normal";
+    localStorage.setItem("uo-country", country); localStorage.setItem("uo-font-size", fontSize); localStorage.setItem("uo-contrast", contrast ? "high" : "normal"); localStorage.setItem("uo-motion", reducedMotion ? "reduced" : "normal");
+  }, [country, fontSize, contrast, reducedMotion]);
+  return <div className="modal-backdrop" role="presentation" onClick={onClose}><section className="preferences-panel" role="dialog" aria-modal="true" aria-labelledby="preferences-title" onClick={e => e.stopPropagation()}><header><div><Accessibility /><h2 id="preferences-title">Preferencias</h2></div><button onClick={onClose} aria-label="Cerrar preferencias"><X /></button></header><label>País o región<select value={country} onChange={e => setCountry(e.target.value)}><option value="DO">República Dominicana</option><option value="MX">México</option><option value="ES">España</option><option value="US">Estados Unidos</option><option value="OTHER">Otro país</option></select></label><label>Tamaño del texto<select value={fontSize} onChange={e => setFontSize(e.target.value)}><option value="normal">Normal</option><option value="large">Grande</option><option value="xlarge">Muy grande</option></select></label><label className="switch-row"><input type="checkbox" checked={contrast} onChange={e => setContrast(e.target.checked)} /> Alto contraste</label><label className="switch-row"><input type="checkbox" checked={reducedMotion} onChange={e => setReducedMotion(e.target.checked)} /> Reducir animaciones</label><p>Estas preferencias se guardan únicamente en este dispositivo.</p><button className="button primary" onClick={onClose}>Aplicar preferencias</button></section></div>;
 }
 
 function Footer() {
@@ -166,7 +220,7 @@ function ToolShell({ tool, children, guide }: { tool: Tool; children: React.Reac
   useEffect(() => track("view_tool", { tool: tool.slug, category: tool.category }), [tool]);
   return <><Header /><main className="tool-page">
     <nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/#herramientas">Herramientas</a><span>/</span><span>{tool.title}</span></nav>
-    <section className={`tool-hero ${tool.color}`}><span className="tool-icon large"><Icon /></span><div><span className="eyebrow">{tool.category}</span><h1>{tool.title}</h1><p>{tool.short}</p></div></section>
+    <section className={`tool-hero ${tool.color}`}><span className="tool-icon large"><Icon /></span><div><span className="eyebrow">{tool.category}</span><h1>{tool.title}</h1><p>{tool.short}</p></div><ToolShareButton tool={tool} /></section>
     <section className="workspace">{children}</section>
     <AdSpace label="Publicidad" />
     <section className="guide">{guide}</section>
@@ -175,26 +229,49 @@ function ToolShell({ tool, children, guide }: { tool: Tool; children: React.Reac
   </main><Footer /></>;
 }
 
+function ToolShareButton({ tool }: { tool: Tool }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    if (navigator.share) await navigator.share({ title: tool.title, text: tool.short, url: location.href });
+    else { await navigator.clipboard.writeText(location.href); setCopied(true); }
+    track("share_tool", { tool: tool.slug });
+  };
+  return <button className="share-tool" onClick={share}><Share2 size={17} /> {copied ? "Enlace copiado" : "Compartir"}</button>;
+}
+
 function AdSpace({ label }: { label: string }) {
   return <aside className="ad-space" aria-label={label}><span>{label}</span><div className="ad-placeholder">Espacio publicitario</div></aside>;
 }
 
 function GradeCalculator() {
   const tool = TOOLS.find(t => t.slug === "calculadora-de-notas")!;
-  const [rows, setRows] = useState<{ name: string; grade: number; weight: number }[]>(() => JSON.parse(localStorage.getItem("uo-grades") || "null") || [{ name: "Tareas", grade: 85, weight: 30 }, { name: "Parcial", grade: 78, weight: 30 }, { name: "Proyecto", grade: 92, weight: 40 }]);
+  const [rows, setRows] = useState<{ name: string; grade: number; weight: number }[]>(() => {
+    const shared = new URLSearchParams(location.search).get("datos");
+    if (shared) try { return decodeState<{ name: string; grade: number; weight: number }[]>(shared); } catch { /* usa datos locales */ }
+    return JSON.parse(localStorage.getItem("uo-grades") || "null") || [{ name: "Tareas", grade: 85, weight: 30 }, { name: "Parcial", grade: 78, weight: 30 }, { name: "Proyecto", grade: 92, weight: 40 }];
+  });
   const [scale, setScale] = useState(100); const [passing, setPassing] = useState(70); const [copied, setCopied] = useState(false);
+  const [scenarioGrade, setScenarioGrade] = useState(90); const [scenarioWeight, setScenarioWeight] = useState(20);
+  const [calculationHistory, setCalculationHistory] = useState<{ date: string; result: number; rows: number }[]>(() => JSON.parse(localStorage.getItem("uo-grade-history") || "[]"));
   const totalWeight = rows.reduce((a, r) => a + Number(r.weight), 0);
   const result = totalWeight ? rows.reduce((a, r) => a + Number(r.grade) * Number(r.weight), 0) / totalWeight : 0;
+  const scenarioResult = totalWeight + scenarioWeight ? (rows.reduce((a, r) => a + Number(r.grade) * Number(r.weight), 0) + scenarioGrade * scenarioWeight) / (totalWeight + scenarioWeight) : 0;
   const update = (i: number, key: string, value: string) => setRows(rows.map((r, n) => n === i ? { ...r, [key]: key === "name" ? value : Number(value) } : r));
-  useEffect(() => localStorage.setItem("uo-grades", JSON.stringify(rows)), [rows]);
+  useEffect(() => {
+    localStorage.setItem("uo-grades", JSON.stringify(rows));
+    const url = new URL(location.href); url.searchParams.set("datos", encodeState(rows)); window.history.replaceState(null, "", url);
+  }, [rows]);
   const summary = `Mi promedio ponderado es ${result.toFixed(1)} de ${scale}, con ${totalWeight}% evaluado.`;
   const share = async () => { if (navigator.share) await navigator.share({ title: "Mi promedio", text: summary, url: location.href }); else { await navigator.clipboard.writeText(summary); setCopied(true); } track("share_result", { tool: tool.slug }); };
+  const saveCalculation = () => { const next = [{ date: new Date().toLocaleDateString(), result, rows: rows.length }, ...calculationHistory].slice(0, 8); setCalculationHistory(next); localStorage.setItem("uo-grade-history", JSON.stringify(next)); track("save_result", { tool: tool.slug }); };
   return <ToolShell tool={tool} guide={<><h2>¿Cómo se calcula el promedio ponderado?</h2><p>Multiplica cada calificación por su porcentaje, suma los resultados y divide entre la suma de los porcentajes. Si todas las actividades valen lo mismo, utiliza pesos iguales.</p><h3>Ejemplo</h3><p>Una tarea de 85 con valor de 30%, un parcial de 78 con valor de 30% y un proyecto de 92 con valor de 40% producen un promedio de 85.7.</p></>}>
     <div className="calculator-card"><div className="calculator-options"><label>Escala<select value={scale} onChange={e => setScale(Number(e.target.value))}>{[5, 10, 20, 100].map(v => <option value={v} key={v}>0 a {v}</option>)}</select></label><label>Nota mínima<input type="number" min="0" max={scale} value={passing} onChange={e => setPassing(Number(e.target.value))} /></label></div><div className="table-head"><span>Actividad</span><span>Nota</span><span>Peso %</span><span></span></div>
       {rows.map((r, i) => <div className="grade-row" key={i}><input aria-label={`Actividad ${i + 1}`} value={r.name} onChange={e => update(i, "name", e.target.value)} /><input aria-label={`Nota ${i + 1}`} type="number" min="0" max={scale} value={r.grade} onChange={e => update(i, "grade", e.target.value)} /><input aria-label={`Peso ${i + 1}`} type="number" min="0" max="100" value={r.weight} onChange={e => update(i, "weight", e.target.value)} /><button onClick={() => setRows(rows.filter((_, n) => n !== i))} aria-label="Eliminar fila"><X size={17} /></button></div>)}
       <button className="text-button" onClick={() => setRows([...rows, { name: "Nueva actividad", grade: 0, weight: 0 }])}>+ Añadir actividad</button>
       {totalWeight !== 100 && <p className="validation-note">El peso suma {totalWeight}%. Para un promedio final completo debe sumar 100%.</p>}
-    </div><div><Result title="Tu promedio es" value={result.toFixed(1)} detail={`Peso utilizado: ${totalWeight}%`} status={result >= passing ? "¡Buen trabajo! Estás aprobando." : "Aún puedes mejorar tu promedio."} /><div className="result-actions"><button onClick={share}><Share2 size={17} /> {copied ? "Copiado" : "Compartir"}</button><button onClick={() => window.print()}><Download size={17} /> Guardar PDF</button><button onClick={() => { setRows([]); localStorage.removeItem("uo-grades"); }}><Trash2 size={17} /> Limpiar</button></div></div>
+    </div><div><Result title="Tu promedio es" value={result.toFixed(1)} detail={`Peso utilizado: ${totalWeight}%`} status={result >= passing ? "¡Buen trabajo! Estás aprobando." : "Aún puedes mejorar tu promedio."} /><ScoreChart value={result} maximum={scale} target={passing} /><div className="result-actions"><button onClick={share}><Share2 size={17} /> {copied ? "Copiado" : "Compartir"}</button><button onClick={saveCalculation}><Save size={17} /> Guardar</button><button onClick={() => window.print()}><Download size={17} /> PDF</button><button onClick={() => { setRows([]); localStorage.removeItem("uo-grades"); }}><Trash2 size={17} /> Limpiar</button></div></div>
+    <section className="scenario-card"><h2>Compara un escenario</h2><p>Descubre cómo cambiaría tu promedio al añadir una evaluación futura.</p><div><label>Nota posible <input type="number" min="0" max={scale} value={scenarioGrade} onChange={e => setScenarioGrade(Number(e.target.value))} /></label><label>Peso posible <input type="number" min="1" max="100" value={scenarioWeight} onChange={e => setScenarioWeight(Number(e.target.value))} /></label></div><strong>{scenarioResult.toFixed(1)}</strong><small>Promedio estimado con ese escenario</small></section>
+    {calculationHistory.length > 0 && <section className="result-history"><h2>Historial reciente</h2>{calculationHistory.map((item, index) => <div key={`${item.date}-${index}`}><span>{item.date} · {item.rows} actividades</span><strong>{item.result.toFixed(1)}</strong></div>)}</section>}
   </ToolShell>;
 }
 
@@ -366,28 +443,24 @@ function TaskPlanner() {
   </ToolShell>;
 }
 
+function ScoreChart({ value, maximum, target }: { value: number; maximum: number; target: number }) {
+  const percentage = Math.max(0, Math.min(100, value / maximum * 100));
+  const targetPercentage = Math.max(0, Math.min(100, target / maximum * 100));
+  return <div className="score-chart" aria-label={`Resultado ${value.toFixed(1)} de ${maximum}; objetivo ${target}`}>
+    <div><span style={{ width: `${percentage}%` }}></span><i style={{ left: `${targetPercentage}%` }}></i></div>
+    <small><span>0</span><span>Objetivo: {target}</span><span>{maximum}</span></small>
+  </div>;
+}
+
 function Result({ title, value, detail, status }: { title: string; value: string; detail: string; status: string }) {
   return <div className="result-card"><span>{title}</span><strong>{value}</strong><small>{detail}</small><p><CheckCircle2 /> {status}</p></div>;
 }
 
-const CONTENT: Record<string, { title: string; intro: string; sections: { heading: string; text: string }[]; tools?: string[] }> = {
-  "calculadoras-academicas": { title: "Calculadoras académicas gratuitas", intro: "Calcula promedios, metas, GPA y asistencia con resultados explicados paso a paso.", tools: ["calculadora-de-notas", "nota-necesaria-para-aprobar", "calculadora-gpa", "conversor-de-calificaciones", "calculadora-de-asistencia"], sections: [{ heading: "Elige la calculadora adecuada", text: "Usa el promedio ponderado cuando cada actividad tenga un peso distinto; el GPA para créditos universitarios; y la calculadora de asistencia para comprobar requisitos mínimos." }, { heading: "Resultados para tomar decisiones", text: "Cada resultado es una estimación basada en los datos que introduces. Contrástalo con el reglamento y la escala oficial de tu institución." }] },
-  "herramientas-de-escritura": { title: "Herramientas de escritura académica", intro: "Cuenta, limpia, organiza y cita textos sin enviar su contenido a nuestros servidores.", tools: ["contador-de-palabras", "generador-apa", "generador-de-portadas", "limpiador-de-texto"], sections: [{ heading: "Mejora la presentación", text: "Antes de entregar, revisa extensión, ortografía, estructura, citas y formato. Estas herramientas resuelven la parte mecánica para que concentres tu tiempo en las ideas." }] },
-  "organizacion-y-estudio": { title: "Organización y técnicas de estudio", intro: "Convierte fechas, clases y sesiones de concentración en un plan semanal realista.", tools: ["temporizador-pomodoro", "creador-de-horarios", "planificador-de-tareas"], sections: [{ heading: "Planificar sin saturarse", text: "Empieza por fechas fijas, divide proyectos grandes en tareas pequeñas y reserva pausas. Un horario útil también deja espacio para cambios." }] },
-  "recursos-para-docentes": { title: "Recursos gratuitos para docentes", intro: "Herramientas listas para proyectar, compartir o usar durante la preparación de clases.", tools: ["calculadora-de-notas", "creador-de-horarios", "generador-apa", "contador-de-palabras"], sections: [{ heading: "Uso responsable en el aula", text: "Comparte el enlace directo de cada herramienta y explica el método detrás del resultado. Así el recurso apoya el aprendizaje en vez de sustituirlo." }] },
-  "guias": { title: "Guías para estudiar mejor", intro: "Explicaciones claras y ejemplos prácticos para resolver dudas académicas frecuentes.", sections: [{ heading: "Cálculo académico", text: "Aprende a diferenciar promedio simple y ponderado, estimar la nota final y convertir escalas sin perder proporcionalidad." }, { heading: "Escritura y organización", text: "Consulta cómo citar en APA 7, organizar un horario y usar Pomodoro de forma sostenible." }] },
-  "guias/como-calcular-promedio-final": { title: "Cómo calcular el promedio final paso a paso", intro: "El promedio final puede ser simple o ponderado. La diferencia está en cuánto vale cada evaluación.", sections: [{ heading: "Promedio simple", text: "Suma todas las notas y divide entre la cantidad de notas. Úsalo solamente cuando todas tengan el mismo valor." }, { heading: "Promedio ponderado", text: "Multiplica cada nota por su porcentaje, suma los productos y divide entre el total de pesos. Comprueba que los porcentajes sumen 100." }, { heading: "Ejemplo", text: "Si tareas valen 30%, parcial 30% y proyecto 40%, notas de 85, 78 y 92 dan 85.7 puntos." }], tools: ["calculadora-de-notas", "nota-necesaria-para-aprobar"] },
-  "guias/nota-necesaria-para-aprobar": { title: "Cómo saber qué nota necesitas para aprobar", intro: "Puedes calcular la nota necesaria usando tu promedio actual, el porcentaje completado y la meta.", sections: [{ heading: "La fórmula", text: "Resta del objetivo total los puntos ya obtenidos y divide entre el porcentaje pendiente. Si el resultado supera la escala máxima, la meta no es alcanzable con una sola evaluación." }], tools: ["nota-necesaria-para-aprobar", "calculadora-de-notas"] },
-  "guias/como-citar-pagina-web-apa-7": { title: "Cómo citar una página web en APA 7", intro: "Una referencia web suele incluir autor, fecha, título, sitio y URL.", sections: [{ heading: "Sin autor o sin fecha", text: "Si no hay autor, comienza por el título. Si no aparece una fecha verificable, usa la abreviatura s. f. No inventes información." }, { heading: "Revisión final", text: "Comprueba que el enlace funcione, aplica sangría francesa en la bibliografía y conserva el orden alfabético." }], tools: ["generador-apa", "contador-de-palabras"] },
-  "guias/promedio-simple-vs-ponderado": { title: "Promedio simple vs. ponderado", intro: "El promedio simple trata todas las notas por igual; el ponderado respeta el valor de cada actividad.", sections: [{ heading: "Cuándo usar cada uno", text: "Usa el simple para actividades equivalentes. Usa el ponderado cuando el programa indica porcentajes distintos para tareas, exámenes o proyectos." }], tools: ["calculadora-de-notas"] },
-  "guias/tecnica-pomodoro": { title: "Técnica Pomodoro: guía práctica", intro: "Pomodoro alterna periodos de concentración con pausas breves para reducir la fatiga.", sections: [{ heading: "Un ciclo sostenible", text: "Trabaja 25 minutos, descansa 5 y repite. Después de cuatro ciclos, toma una pausa de 15 a 30 minutos. Ajusta los bloques si la tarea requiere más continuidad." }], tools: ["temporizador-pomodoro", "planificador-de-tareas"] },
-  "guias/organizar-horario-universitario": { title: "Cómo organizar un horario universitario", intro: "Un buen horario combina clases, traslados, estudio individual, entregas y descanso.", sections: [{ heading: "Orden recomendado", text: "Coloca primero las clases y compromisos fijos. Añade bloques de repaso cerca de cada clase, evita solapamientos y deja márgenes para imprevistos." }], tools: ["creador-de-horarios", "planificador-de-tareas"] }
-};
-
 function ContentPage({ slug }: { slug: string }) {
   const page = CONTENT[slug];
-  useEffect(() => { document.title = `${page.title} | Útiles Online`; const meta = document.querySelector('meta[name="description"]'); meta?.setAttribute("content", page.intro); }, [page]);
-  return <><Header /><main className="content-page"><nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/guias">Recursos</a><span>/</span><span>{page.title}</span></nav><header><span className="eyebrow">Recurso educativo</span><h1>{page.title}</h1><p>{page.intro}</p><span className="reviewed"><CheckCircle2 /> Contenido revisado por el equipo editorial · Actualizado en julio de 2026</span></header>{page.tools && <section><h2>Herramientas relacionadas</h2><div className="tool-grid">{page.tools.map(slug => <ToolCard key={slug} tool={TOOLS.find(t => t.slug === slug)!} />)}</div></section>}<article>{page.sections.map(section => <section key={section.heading}><h2>{section.heading}</h2><p>{section.text}</p></section>)}</article><section className="faq"><h2>Preguntas frecuentes</h2><details><summary>¿Estas herramientas son gratuitas?</summary><p>Sí. Puedes utilizarlas sin crear una cuenta.</p></details><details><summary>¿Se guardan mis datos?</summary><p>Los cálculos se realizan en tu navegador. Las funciones de guardado usan el almacenamiento local de tu dispositivo.</p></details></section><AdSpace label="Publicidad" /></main><Footer /></>;
+  usePageMetadata(page.title, page.intro, slug);
+  const relatedGuides = GUIDE_SLUGS.filter(key => key !== slug && (!page.category || CONTENT[key].category === page.category)).slice(0, 4);
+  return <><Header /><main className="content-page"><nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/guias">Recursos</a><span>/</span><span>{page.title}</span></nav><header><span className="eyebrow">{page.category || "Recurso educativo"}</span><h1>{page.title}</h1><p>{page.intro}</p><span className="reviewed"><CheckCircle2 /> Actualizado y comprobado en julio de 2026</span></header>{slug === "guias" && <section><h2>Todas las guías</h2><div className="article-grid">{GUIDE_SLUGS.map(key => <a key={key} href={`/${key}`}><span>{CONTENT[key].category}</span><h3>{CONTENT[key].title}</h3><p>{CONTENT[key].intro}</p><strong>Leer guía <ArrowRight size={16} /></strong></a>)}</div></section>}{page.tools && <section><h2>Herramientas relacionadas</h2><div className="tool-grid">{page.tools.map(toolSlug => <ToolCard key={toolSlug} tool={TOOLS.find(t => t.slug === toolSlug)!} />)}</div></section>}<article>{page.sections.map(section => <section key={section.heading}><h2>{section.heading}</h2><p>{section.text}</p></section>)}</article>{slug !== "guias" && relatedGuides.length > 0 && <section><h2>Continúa aprendiendo</h2><div className="related-guides">{relatedGuides.map(key => <a href={`/${key}`} key={key}>{CONTENT[key].title}<ArrowRight size={17} /></a>)}</div></section>}<section className="faq"><h2>Preguntas frecuentes</h2><details><summary>¿Estas herramientas son gratuitas?</summary><p>Sí. Puedes utilizarlas sin crear una cuenta.</p></details><details><summary>¿Se guardan mis datos?</summary><p>Los cálculos se realizan en tu navegador. Las funciones de guardado usan el almacenamiento local de tu dispositivo.</p></details></section><AdSpace label="Publicidad" /></main><Footer /></>;
 }
 
 function InfoPage({ slug }: { slug: string }) {
@@ -399,6 +472,24 @@ function InfoPage({ slug }: { slug: string }) {
   }[slug]!;
   useEffect(() => { document.title = `${data.title} | Útiles Online`; }, [data.title]);
   return <><Header /><main className="info-page"><span className="eyebrow">Útiles Online</span><h1>{data.title}</h1>{data.body.map(p => <p key={p}>{p}</p>)}<p><strong>Última actualización:</strong> 28 de julio de 2026.</p><a className="button primary" href="/">Volver al inicio</a></main><Footer /></>;
+}
+
+function SeoDashboard() {
+  const [csv, setCsv] = useState("");
+  useEffect(() => { document.title = "Panel de oportunidades SEO | Útiles Online"; document.querySelector('meta[name="robots"]')?.setAttribute("content", "noindex,nofollow"); return () => document.querySelector('meta[name="robots"]')?.setAttribute("content", "index,follow,max-image-preview:large"); }, []);
+  const rows = useMemo(() => csv.split(/\r?\n/).slice(1).map(line => {
+    const columns = line.split(/,|;/).map(value => value.replace(/^"|"$/g, "").trim());
+    if (columns.length < 5) return null;
+    const [query, page, clicks, impressions, ctr, position] = columns;
+    return { query, page, clicks: Number(clicks), impressions: Number(impressions), ctr: Number(String(ctr).replace("%", "")), position: Number(position) };
+  }).filter((row): row is NonNullable<typeof row> => Boolean(row?.query && Number.isFinite(row.position))), [csv]);
+  const opportunities = [...rows].filter(row => row.position >= 8 && row.position <= 20).sort((a, b) => b.impressions - a.impressions).slice(0, 25);
+  const lowCtr = [...rows].filter(row => row.impressions >= 20 && row.ctr < 2).sort((a, b) => b.impressions - a.impressions).slice(0, 10);
+  return <><Header /><main className="seo-dashboard"><header><span className="eyebrow"><BarChart3 /> Diagnóstico privado</span><h1>Panel de oportunidades SEO</h1><p>Pega una exportación CSV de Rendimiento en Search Console con columnas: consulta, página, clics, impresiones, CTR y posición. El análisis ocurre en tu navegador.</p></header><textarea value={csv} onChange={e => setCsv(e.target.value)} placeholder="Consulta,Página,Clics,Impresiones,CTR,Posición&#10;calcular promedio,https://utilesonline.com/calculadora-de-notas,10,800,1.25%,12.4" /><div className="seo-metrics"><div><strong>{rows.length}</strong><span>consultas analizadas</span></div><div><strong>{opportunities.length}</strong><span>entre posiciones 8 y 20</span></div><div><strong>{lowCtr.length}</strong><span>con CTR bajo</span></div><div><strong>{GUIDE_SLUGS.length}</strong><span>guías publicadas</span></div></div><section><h2>Prioridad: posiciones 8–20</h2>{opportunities.length ? <SeoTable rows={opportunities} /> : <p>Pega el CSV para detectar oportunidades.</p>}</section><section><h2>Impresiones con CTR menor de 2%</h2>{lowCtr.length ? <SeoTable rows={lowCtr} /> : <p>No hay datos suficientes todavía.</p>}</section></main><Footer /></>;
+}
+
+function SeoTable({ rows }: { rows: { query: string; page: string; clicks: number; impressions: number; ctr: number; position: number }[] }) {
+  return <div className="seo-table"><div><strong>Consulta</strong><strong>Impresiones</strong><strong>CTR</strong><strong>Posición</strong></div>{rows.map(row => <div key={`${row.query}-${row.page}`}><span><strong>{row.query}</strong><small>{row.page}</small></span><span>{row.impressions}</span><span>{row.ctr}%</span><span>{row.position}</span></div>)}</div>;
 }
 
 export default function App() {
@@ -419,6 +510,7 @@ export default function App() {
   if (slug === "conversor-de-unidades") return <UnitConverter />;
   if (slug === "planificador-de-tareas") return <TaskPlanner />;
   if (CONTENT[slug]) return <ContentPage slug={slug} />;
+  if (slug === "panel-seo") return <SeoDashboard />;
   if (["acerca-de", "privacidad", "contacto", "metodologia"].includes(slug)) return <InfoPage slug={slug} />;
   return <><Header /><main className="info-page not-found"><span>404</span><h1>Página no encontrada</h1><p>La dirección solicitada no existe o fue reemplazada.</p><a className="button primary" href="/">Explorar herramientas</a></main><Footer /></>;
 }

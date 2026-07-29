@@ -10,7 +10,6 @@
   <meta name="theme-color" content="#6d4aff" />
   <link rel="canonical" href="https://utilesonline.com/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="manifest" href="/site.webmanifest" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_DO" />
   <meta property="og:site_name" content="Útiles Online" />
@@ -18,6 +17,20 @@
   <meta property="og:description" content="Calcula tus notas, mejora tus trabajos y organiza tu tiempo con herramientas educativas gratuitas." />
   <meta property="og:url" content="https://utilesonline.com/" />
   <meta name="twitter:card" content="summary" />
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      wait_for_update: 500
+    });
+    if (localStorage.getItem('uo-consent') === 'accepted') {
+      gtag('consent', 'update', {ad_storage:'granted',analytics_storage:'granted',ad_user_data:'granted',ad_personalization:'granted'});
+    }
+  </script>
   <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
     var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
@@ -28,7 +41,7 @@
     (function () {
       var loaded = false;
       function loadAds() {
-        if (loaded) return;
+        if (loaded || localStorage.getItem('uo-consent') !== 'accepted') return;
         loaded = true;
         var script = document.createElement('script');
         script.async = true;
@@ -38,6 +51,7 @@
         ['pointerdown', 'keydown', 'scroll'].forEach(function (event) { window.removeEventListener(event, loadAds); });
       }
       ['pointerdown', 'keydown', 'scroll'].forEach(function (event) { window.addEventListener(event, loadAds, { once: true, passive: true }); });
+      window.addEventListener('uo-consent-change', loadAds);
       window.setTimeout(loadAds, 5000);
     })();
   </script>

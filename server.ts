@@ -2,11 +2,12 @@ import express from "express";
 import compression from "compression";
 import path from "node:path";
 import fs from "node:fs";
+import { CONTENT } from "./src/content";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const ORIGIN = "https://utilesonline.com";
-const pages: Record<string, { title: string; description: string; type?: string }> = {
+const pages: Record<string, { title: string; description: string; type?: string; noindex?: boolean }> = {
   "/": { title: "Útiles Online | Herramientas gratuitas para estudiar mejor", description: "Calculadoras académicas, herramientas de escritura y recursos gratuitos para estudiantes y docentes." },
   "/calculadora-de-notas": { title: "Calculadora de notas y promedio ponderado | Útiles Online", description: "Calcula gratis tu promedio simple o ponderado y descubre si estás aprobando.", type: "SoftwareApplication" },
   "/nota-necesaria-para-aprobar": { title: "Calculadora de nota necesaria para aprobar | Útiles Online", description: "Descubre qué calificación necesitas en el examen final para alcanzar el promedio deseado.", type: "SoftwareApplication" },
@@ -36,15 +37,19 @@ const pages: Record<string, { title: string; description: string; type?: string 
   "/acerca-de": { title: "Acerca de Útiles Online", description: "Conoce el propósito y los principios de Útiles Online." },
   "/metodologia": { title: "Metodología editorial y de cálculo | Útiles Online", description: "Cómo revisamos las fórmulas, guías y herramientas de Útiles Online." },
   "/privacidad": { title: "Política de privacidad | Útiles Online", description: "Información sobre privacidad y tratamiento de datos en Útiles Online." },
-  "/contacto": { title: "Contacto | Útiles Online", description: "Formas de contactar con el equipo de Útiles Online." }
+  "/contacto": { title: "Contacto | Útiles Online", description: "Formas de contactar con el equipo de Útiles Online." },
+  "/panel-seo": { title: "Panel de oportunidades SEO | Útiles Online", description: "Analiza exportaciones de Search Console de forma local.", noindex: true }
 };
+for (const [slug, page] of Object.entries(CONTENT)) {
+  pages[`/${slug}`] = { title: `${page.title} | Útiles Online`, description: page.intro, type: slug.startsWith("guias/") ? "Article" : undefined };
+}
 app.disable("x-powered-by");
 app.use((req, res, next) => req.hostname.toLowerCase() === "www.utilesonline.com" ? res.redirect(301, `${ORIGIN}${req.originalUrl}`) : next());
 app.use(compression());
 app.use((_req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "SAMEORIGIN"); res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); next(); });
 app.get("/robots.txt", (_req, res) => res.type("text/plain").send(`User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`));
 app.get("/sitemap.xml", (_req, res) => {
-  const urls = Object.keys(pages).map(route => `<url><loc>${ORIGIN}${route}</loc><changefreq>${route === "/" ? "weekly" : "monthly"}</changefreq><priority>${route === "/" ? "1.0" : "0.8"}</priority></url>`).join("");
+  const urls = Object.entries(pages).filter(([, page]) => !page.noindex).map(([route]) => `<url><loc>${ORIGIN}${route}</loc><changefreq>${route === "/" ? "weekly" : "monthly"}</changefreq><priority>${route === "/" ? "1.0" : "0.8"}</priority></url>`).join("");
   res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
 });
 const distPath = path.join(process.cwd(), "dist");
@@ -53,8 +58,16 @@ function render(pathname: string) {
   const meta = pages[pathname]; if (!meta) return null;
   const canonical = `${ORIGIN}${pathname}`;
   const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
-  const schema = meta.type ? { "@context": "https://schema.org", "@type": meta.type, name: meta.title.split(" | ")[0], description: meta.description, url: canonical, applicationCategory: "EducationalApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } } : { "@context": "https://schema.org", "@type": "WebPage", name: meta.title, description: meta.description, url: canonical, inLanguage: "es" };
-  const fallback = `<main data-server-fallback><nav><a href="/">Útiles Online</a> · <a href="/calculadoras-academicas">Calculadoras</a> · <a href="/guias">Guías</a></nav><h1>${escapeHtml(meta.title.split(" | ")[0])}</h1><p>${escapeHtml(meta.description)}</p><p><a href="/#herramientas">Explorar herramientas educativas gratuitas</a></p></main>`;
+  const content = CONTENT[pathname.replace(/^\//, "")];
+  const mainSchema = meta.type === "SoftwareApplication"
+    ? { "@type": "SoftwareApplication", name: meta.title.split(" | ")[0], description: meta.description, url: canonical, applicationCategory: "EducationalApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } }
+    : meta.type === "Article"
+      ? { "@type": "Article", headline: meta.title.split(" | ")[0], description: meta.description, url: canonical, dateModified: "2026-07-28", inLanguage: "es" }
+      : { "@type": "WebPage", name: meta.title, description: meta.description, url: canonical, inLanguage: "es" };
+  const schema = { "@context": "https://schema.org", "@graph": [mainSchema, { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Inicio", item: ORIGIN }, { "@type": "ListItem", position: 2, name: meta.title.split(" | ")[0], item: canonical }] }] };
+  const sections = content?.sections.map(section => `<section><h2>${escapeHtml(section.heading)}</h2><p>${escapeHtml(section.text)}</p></section>`).join("") || `<section><h2>Cómo utilizar este recurso</h2><p>Introduce tus datos en la herramienta, revisa el resultado y consulta la explicación del método antes de tomar una decisión académica.</p></section>`;
+  const related = content?.tools?.map(slug => `<li><a href="/${escapeHtml(slug)}">${escapeHtml(pages[`/${slug}`]?.title.split(" | ")[0] || slug)}</a></li>`).join("") || "";
+  const fallback = `<main data-server-fallback><nav><a href="/">Útiles Online</a> · <a href="/calculadoras-academicas">Calculadoras</a> · <a href="/guias">Guías</a></nav><article><h1>${escapeHtml(meta.title.split(" | ")[0])}</h1><p>${escapeHtml(meta.description)}</p>${sections}${related ? `<h2>Herramientas relacionadas</h2><ul>${related}</ul>` : ""}</article><p><a href="/#herramientas">Explorar herramientas educativas gratuitas</a></p></main>`;
   return fs.readFileSync(path.join(distPath, "index.html"), "utf8")
     .replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`)
     .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${meta.description}" />`)
@@ -62,6 +75,7 @@ function render(pathname: string) {
     .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${meta.title}" />`)
     .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${meta.description}" />`)
     .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${canonical}" />`)
+    .replace(/<meta name="robots" content=".*?" \/>/, `<meta name="robots" content="${meta.noindex ? "noindex,nofollow" : "index,follow,max-image-preview:large"}" />`)
     .replace('<div id="root"></div>', `<div id="root">${fallback}</div>`)
     .replace("</head>", `<script type="application/ld+json">${JSON.stringify(schema)}</script></head>`);
 }
