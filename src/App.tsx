@@ -229,7 +229,11 @@ function Home() {
 function ToolShell({ tool, children, guide }: { tool: Tool; children: React.ReactNode; guide: React.ReactNode }) {
   useMetadata(tool);
   const Icon = tool.icon;
-  useEffect(() => track("view_tool", { tool: tool.slug, category: tool.category }), [tool]);
+  useEffect(() => {
+    document.body.dataset.printMode = ["generador-de-portadas", "creador-de-horarios", "planificador-de-tareas"].includes(tool.slug) ? "document" : "result";
+    track("view_tool", { tool: tool.slug, category: tool.category });
+    return () => { delete document.body.dataset.printMode; };
+  }, [tool]);
   return <><Header /><main className="tool-page">
     <nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/#herramientas">Herramientas</a><span>/</span><span>{tool.title}</span></nav>
     <section className={`tool-hero ${tool.color}`}><span className="tool-icon large"><Icon /></span><div><span className="eyebrow">{tool.category}</span><h1>{tool.title}</h1><p>{tool.short}</p></div><div className="tool-hero-actions"><ToolShareButton tool={tool} /><button className="share-tool" onClick={() => window.print()}><Download size={17} /> Imprimir / PDF</button></div></section>
@@ -411,7 +415,7 @@ function TextCleaner() {
   const clean = () => setCleaned(text.replace(/\r/g, "").replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n").trim());
   const sentenceCase = () => setCleaned(text.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g, m => m.toUpperCase()).replace(/[ \t]+/g, " ").trim());
   return <ToolShell tool={tool} guide={<><h2>Limpia textos copiados</h2><p>Elimina espacios duplicados, líneas excesivas y errores frecuentes de formato. El procesamiento ocurre únicamente en tu navegador.</p></>}>
-    <div className="text-tools"><textarea className="big-textarea" value={text} onChange={e => setText(e.target.value)} placeholder="Pega el texto original…" /><div><button className="button primary" onClick={clean}>Limpiar espacios</button><button className="button secondary" onClick={sentenceCase}>Formato oración</button></div><textarea className="big-textarea" value={cleaned} onChange={e => setCleaned(e.target.value)} placeholder="El resultado aparecerá aquí…" /><button className="button secondary" disabled={!cleaned} onClick={() => navigator.clipboard.writeText(cleaned)}>Copiar resultado</button></div>
+    <div className="text-tools"><textarea className="big-textarea" value={text} onChange={e => setText(e.target.value)} placeholder="Pega el texto original…" /><div><button className="button primary" onClick={clean}>Limpiar espacios</button><button className="button secondary" onClick={sentenceCase}>Formato oración</button></div><textarea className="big-textarea print-text-output" value={cleaned} onChange={e => setCleaned(e.target.value)} placeholder="El resultado aparecerá aquí…" /><button className="button secondary" disabled={!cleaned} onClick={() => navigator.clipboard.writeText(cleaned)}>Copiar resultado</button></div>
   </ToolShell>;
 }
 

@@ -30,3 +30,52 @@
 .calculation-tools{grid-column:1/-1;display:grid;gap:12px}.mini-history{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:15px;display:grid;gap:7px}.mini-history>span{display:flex;justify-content:space-between;color:var(--muted);border-top:1px solid var(--line);padding-top:7px}.template-outline{grid-column:1/-1;display:grid;gap:10px}.template-outline label{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:15px;display:grid;gap:8px}.template-outline textarea{min-height:110px;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:10px;padding:12px}.worksheet>header{grid-column:1/-1;display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding:10px 0}.worksheet small.show-answer{display:block}
 @media(max-width:580px){.worksheet>header{flex-direction:column}}
 @media print{@page{size:auto;margin:14mm}.extra-tool-page .mini-history{display:none!important}.worksheet small.show-answer{display:block!important}.worksheet>header{display:flex!important}}
+@media print{
+  html,body,#root{background:#fff!important;color:#111!important}
+  body[data-print-mode] .form-card,
+  body[data-print-mode] .calculator-card,
+  body[data-print-mode] .calculator-options,
+  body[data-print-mode] .big-textarea,
+  body[data-print-mode] .planner-form,
+  body[data-print-mode] .schedule-form,
+  body[data-print-mode] .schedule-actions,
+  body[data-print-mode] .extra-form,
+  body[data-print-mode] .extra-text-panel,
+  body[data-print-mode] .extra-list-editor,
+  body[data-print-mode] .element-search,
+  body[data-print-mode] .organizer-form,
+  body[data-print-mode] .inline-add,
+  body[data-print-mode] .flashcard-form,
+  body[data-print-mode] .calculation-tools,
+  body[data-print-mode] .citation-history,
+  body[data-print-mode] .result-actions,
+  body[data-print-mode] .scenario-card,
+  body[data-print-mode] .result-history,
+  body[data-print-mode] .privacy-note,
+  body[data-print-mode] .text-tools>div,
+  body[data-print-mode] button{display:none!important}
+  body[data-print-mode=result] .print-text-output{display:block!important;min-height:220px;border:1px solid #999!important;background:#fff!important;color:#111!important}
+  body[data-print-mode=result] .text-comparison textarea:first-child{display:none!important}
+  body[data-print-mode=result] .text-comparison{display:block!important}
+  body[data-print-mode=result] .text-comparison textarea{min-height:180px;border:1px solid #bbb!important;background:#fff!important}
+  body[data-print-mode=result] .extra-result,
+  body[data-print-mode=result] .result-card{background:#fff!important;color:#111!important;border:2px solid #222!important;box-shadow:none!important;padding:18px!important}
+  body[data-print-mode=result] .extra-result>strong,
+  body[data-print-mode=result] .result-card>strong{color:#111!important}
+  body[data-print-mode=result] .extra-result p,
+  body[data-print-mode=result] .result-card p{border-color:#bbb!important}
+  body[data-print-mode=result] .calculation-breakdown,
+  body[data-print-mode=result] .metric-grid>div,
+  body[data-print-mode=result] .counter-stats>div,
+  body[data-print-mode=result] .citation-box,
+  body[data-print-mode=result] .output-box{background:#fff!important;color:#111!important;border:1px solid #999!important;box-shadow:none!important}
+  body[data-print-mode=document] .extra-workspace,
+  body[data-print-mode=document] .workspace{display:block!important}
+  body[data-print-mode=document] .worksheet,
+  body[data-print-mode=document] .rubric-table,
+  body[data-print-mode=document] .cover-preview,
+  body[data-print-mode=document] .schedule-grid,
+  body[data-print-mode=document] .task-list,
+  body[data-print-mode=document] .cornell,
+  body[data-print-mode=document] .template-outline{background:#fff!important;color:#111!important;box-shadow:none!important;border-color:#777!important}
+}

@@ -114,9 +114,11 @@ function useStored<T>(key: string, initial: T) {
 function Shell({ slug, header, footer, children }: { slug: string; header: ReactNode; footer: ReactNode; children: ReactNode }) {
   const tool = findTool(slug);
   const seo = getToolSeoDetails(tool);
+  const printableDocument = ["creador-de-rubricas", "generador-hojas-ejercicios", "generador-tablas-multiplicar", "mapa-conceptual", "apuntes-cornell", "plantillas-trabajos-academicos", "registro-asistencia-docentes"].includes(slug);
   const related = EXTRA_TOOL_CATALOG.filter(item => item.slug !== slug && item.category === tool.category).slice(0, 4);
   const [shared, setShared] = useState(false);
   useEffect(() => {
+    document.body.dataset.printMode = printableDocument ? "document" : "result";
     document.title = `${tool.title} gratis | Útiles Online`;
     document.querySelector('meta[name="description"]')?.setAttribute("content", tool.short);
     document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://utilesonline.com/${slug}`);
@@ -124,7 +126,8 @@ function Shell({ slug, header, footer, children }: { slug: string; header: React
     win.dataLayer = win.dataLayer || []; win.dataLayer.push({ event: "view_tool", tool: slug, category: tool.category });
     const recent = JSON.parse(localStorage.getItem("uo-recent-tools") || "[]") as string[];
     localStorage.setItem("uo-recent-tools", JSON.stringify([slug, ...recent.filter(item => item !== slug)].slice(0, 8)));
-  }, [slug, tool]);
+    return () => { delete document.body.dataset.printMode; };
+  }, [slug, tool, printableDocument]);
   const share = async () => {
     if (navigator.share) await navigator.share({ title: tool.title, text: tool.short, url: location.href });
     else { await navigator.clipboard.writeText(location.href); setShared(true); }
