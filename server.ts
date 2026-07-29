@@ -3,7 +3,7 @@ import compression from "compression";
 import path from "node:path";
 import fs from "node:fs";
 import { CONTENT } from "./src/content";
-import { EXTRA_TOOL_CATALOG } from "./src/studyTools";
+import { EXTRA_TOOL_CATALOG, getToolSeoDetails } from "./src/studyTools";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -53,7 +53,7 @@ app.use(compression());
 app.use((_req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "SAMEORIGIN"); res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); next(); });
 app.get("/robots.txt", (_req, res) => res.type("text/plain").send(`User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`));
 app.get("/sitemap.xml", (_req, res) => {
-  const urls = Object.entries(pages).filter(([, page]) => !page.noindex).map(([route]) => `<url><loc>${ORIGIN}${route}</loc><changefreq>${route === "/" ? "weekly" : "monthly"}</changefreq><priority>${route === "/" ? "1.0" : "0.8"}</priority></url>`).join("");
+  const urls = Object.entries(pages).filter(([, page]) => !page.noindex).map(([route, page]) => `<url><loc>${ORIGIN}${route}</loc><lastmod>2026-07-29</lastmod><changefreq>${route === "/" ? "weekly" : "monthly"}</changefreq><priority>${route === "/" ? "1.0" : page.type === "SoftwareApplication" ? "0.9" : "0.7"}</priority></url>`).join("");
   res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>`);
 });
 const distPath = path.join(process.cwd(), "dist");
@@ -64,13 +64,20 @@ function render(pathname: string) {
   const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
   const content = CONTENT[pathname.replace(/^\//, "")];
   const extraTool = EXTRA_TOOL_CATALOG.find(tool => `/${tool.slug}` === pathname);
+  const extraSeo = extraTool ? getToolSeoDetails(extraTool) : null;
   const mainSchema = meta.type === "SoftwareApplication"
     ? { "@type": "SoftwareApplication", name: meta.title.split(" | ")[0], description: meta.description, url: canonical, applicationCategory: "EducationalApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } }
     : meta.type === "Article"
       ? { "@type": "Article", headline: meta.title.split(" | ")[0], description: meta.description, url: canonical, dateModified: "2026-07-28", inLanguage: "es" }
       : { "@type": "WebPage", name: meta.title, description: meta.description, url: canonical, inLanguage: "es" };
-  const schema = { "@context": "https://schema.org", "@graph": [mainSchema, { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Inicio", item: ORIGIN }, { "@type": "ListItem", position: 2, name: meta.title.split(" | ")[0], item: canonical }] }] };
-  const sections = content?.sections.map(section => `<section><h2>${escapeHtml(section.heading)}</h2><p>${escapeHtml(section.text)}</p></section>`).join("") || `<section><h2>Cómo utilizar este recurso</h2><p>Introduce tus datos en la herramienta, revisa el resultado y consulta la explicación del método antes de tomar una decisión académica.</p></section>`;
+  const graph: Record<string, unknown>[] = [mainSchema, { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Inicio", item: ORIGIN }, { "@type": "ListItem", position: 2, name: meta.title.split(" | ")[0], item: canonical }] }];
+  if (extraSeo) {
+    graph.push({ "@type": "HowTo", name: `Cómo usar ${extraTool!.title}`, description: extraSeo.purpose, step: extraSeo.steps.map((text, index) => ({ "@type": "HowToStep", position: index + 1, text })) });
+    graph.push({ "@type": "FAQPage", mainEntity: extraSeo.faqs.map(faq => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) });
+  }
+  const schema = { "@context": "https://schema.org", "@graph": graph };
+  const extraSections = extraSeo ? `<section><h2>¿Para qué sirve esta herramienta?</h2><p>${escapeHtml(extraSeo.purpose)}</p></section><section><h2>Cómo usarla paso a paso</h2><ol>${extraSeo.steps.map(step => `<li>${escapeHtml(step)}</li>`).join("")}</ol></section><section><h2>Consejos para un resultado fiable</h2><ul>${extraSeo.tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join("")}</ul></section><section><h2>Preguntas frecuentes</h2>${extraSeo.faqs.map(faq => `<h3>${escapeHtml(faq.question)}</h3><p>${escapeHtml(faq.answer)}</p>`).join("")}</section>` : "";
+  const sections = content?.sections.map(section => `<section><h2>${escapeHtml(section.heading)}</h2><p>${escapeHtml(section.text)}</p></section>`).join("") || extraSections || `<section><h2>Cómo utilizar este recurso</h2><p>Introduce tus datos en la herramienta, revisa el resultado y consulta la explicación del método antes de tomar una decisión académica.</p></section>`;
   const relatedSlugs = content?.tools || (extraTool ? EXTRA_TOOL_CATALOG.filter(tool => tool.slug !== extraTool.slug && tool.category === extraTool.category).slice(0, 4).map(tool => tool.slug) : []);
   const related = relatedSlugs.map(slug => `<li><a href="/${escapeHtml(slug)}">${escapeHtml(pages[`/${slug}`]?.title.split(" | ")[0] || slug)}</a></li>`).join("");
   const fallback = `<main data-server-fallback><nav><a href="/">Útiles Online</a> · <a href="/calculadoras-academicas">Calculadoras</a> · <a href="/guias">Guías</a></nav><article><h1>${escapeHtml(meta.title.split(" | ")[0])}</h1><p>${escapeHtml(meta.description)}</p>${sections}${related ? `<h2>Herramientas relacionadas</h2><ul>${related}</ul>` : ""}</article><p><a href="/#herramientas">Explorar herramientas educativas gratuitas</a></p></main>`;

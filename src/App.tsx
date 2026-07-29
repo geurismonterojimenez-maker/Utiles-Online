@@ -229,7 +229,8 @@ function ToolShell({ tool, children, guide }: { tool: Tool; children: React.Reac
   useEffect(() => track("view_tool", { tool: tool.slug, category: tool.category }), [tool]);
   return <><Header /><main className="tool-page">
     <nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/#herramientas">Herramientas</a><span>/</span><span>{tool.title}</span></nav>
-    <section className={`tool-hero ${tool.color}`}><span className="tool-icon large"><Icon /></span><div><span className="eyebrow">{tool.category}</span><h1>{tool.title}</h1><p>{tool.short}</p></div><ToolShareButton tool={tool} /></section>
+    <section className={`tool-hero ${tool.color}`}><span className="tool-icon large"><Icon /></span><div><span className="eyebrow">{tool.category}</span><h1>{tool.title}</h1><p>{tool.short}</p></div><div className="tool-hero-actions"><ToolShareButton tool={tool} /><button className="share-tool" onClick={() => window.print()}><Download size={17} /> Imprimir / PDF</button></div></section>
+    <div className="print-report-header"><strong>Útiles Online</strong><h1>{tool.title}</h1><p>Resultado generado en utilesonline.com</p></div>
     <section className="workspace">{children}</section>
     <AdSpace label="Publicidad" />
     <section className="guide">{guide}</section>

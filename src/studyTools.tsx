@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { ArrowRight, CheckCircle2, Clock3, Download, Plus, RotateCcw, Save, Search, Trash2, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock3, Download, Plus, Printer, RotateCcw, Save, Search, Share2, Trash2, X } from "lucide-react";
 
 export type ExtraToolCatalogItem = {
   slug: string;
@@ -50,6 +50,36 @@ export const EXTRA_TOOL_CATALOG: ExtraToolCatalogItem[] = [
   { slug: "panel-academico", title: "Panel académico personal", short: "Consulta materias, tareas, hábitos, próximos eventos y progreso.", category: "Organización", color: "cyan" }
 ];
 
+export type ToolSeoDetails = {
+  purpose: string;
+  steps: string[];
+  tips: string[];
+  faqs: { question: string; answer: string }[];
+};
+
+export function getToolSeoDetails(tool: ExtraToolCatalogItem): ToolSeoDetails {
+  const calculator = tool.category === "Cálculo académico" || tool.category === "Matemáticas";
+  const teacher = tool.category === "Docentes";
+  return {
+    purpose: calculator
+      ? `Esta calculadora de ${tool.title.toLowerCase()} transforma tus datos en un resultado inmediato y muestra el método para que puedas comprobarlo.`
+      : teacher
+        ? `Este recurso de ${tool.title.toLowerCase()} ayuda a preparar una actividad de clase clara, reutilizable e imprimible.`
+        : `${tool.title} organiza la información directamente en tu navegador para que puedas estudiar con un proceso claro y repetible.`,
+    steps: calculator
+      ? ["Introduce valores válidos en cada campo.", "Revisa el resultado y la explicación del cálculo.", "Compara el resultado con las reglas de tu institución antes de usarlo."]
+      : ["Completa los campos con la información de tu actividad.", "Revisa y ajusta el contenido generado.", "Imprime, guarda como PDF o comparte el recurso terminado."],
+    tips: calculator
+      ? ["Usa la misma escala de calificación en todos los datos.", "No redondees valores intermedios; redondea solo el resultado final.", "Prueba varios escenarios para tomar una decisión mejor informada."]
+      : ["Empieza con datos concretos y un objetivo definido.", "Guarda o imprime una copia antes de cambiar información importante.", "Adapta el resultado al nivel y las reglas de tu curso."],
+    faqs: [
+      { question: `¿${tool.title} es gratis?`, answer: "Sí. La herramienta se puede usar gratis y sin crear una cuenta." },
+      { question: "¿Se guardan mis datos?", answer: "Los cálculos se realizan en tu navegador. Algunas herramientas guardan borradores solo en este dispositivo." },
+      { question: "¿Puedo imprimir o guardar el resultado?", answer: "Sí. Usa Imprimir o PDF y selecciona Guardar como PDF en el cuadro de impresión del navegador." }
+    ]
+  };
+}
+
 const findTool = (slug: string) => EXTRA_TOOL_CATALOG.find(tool => tool.slug === slug)!;
 const number = (value: string | number) => Number(value) || 0;
 const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : Math.abs(a);
@@ -69,7 +99,9 @@ function useStored<T>(key: string, initial: T) {
 
 function Shell({ slug, header, footer, children }: { slug: string; header: ReactNode; footer: ReactNode; children: ReactNode }) {
   const tool = findTool(slug);
+  const seo = getToolSeoDetails(tool);
   const related = EXTRA_TOOL_CATALOG.filter(item => item.slug !== slug && item.category === tool.category).slice(0, 4);
+  const [shared, setShared] = useState(false);
   useEffect(() => {
     document.title = `${tool.title} gratis | Útiles Online`;
     document.querySelector('meta[name="description"]')?.setAttribute("content", tool.short);
@@ -77,18 +109,23 @@ function Shell({ slug, header, footer, children }: { slug: string; header: React
     const win = window as Window & { dataLayer?: Record<string, unknown>[] };
     win.dataLayer = win.dataLayer || []; win.dataLayer.push({ event: "view_tool", tool: slug, category: tool.category });
   }, [slug, tool]);
-  return <>{header}<main className="extra-tool-page"><nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/#herramientas">Herramientas</a><span>/</span><span>{tool.title}</span></nav><header className={`extra-tool-hero ${tool.color}`}><span>{tool.category}</span><h1>{tool.title}</h1><p>{tool.short}</p></header><section className="extra-workspace">{children}</section><aside className="ad-space" aria-label="Publicidad"><span>Publicidad</span><div className="ad-placeholder">Espacio publicitario</div></aside><section className="extra-guide"><h2>Cómo utilizar esta herramienta</h2><p>Introduce datos reales, revisa el resultado y guarda o exporta la información cuando sea necesario. Todo se procesa en tu navegador; confirma siempre las reglas particulares de tu institución.</p><h2>Recomendación</h2><p>Usa el resultado como apoyo para planificar y comprender el método, no como sustituto de una evaluación o reglamento oficial.</p></section>{related.length > 0 && <section className="extra-related"><h2>Más herramientas de {tool.category.toLowerCase()}</h2><div>{related.map(item => <a href={`/${item.slug}`} key={item.slug}><strong>{item.title}</strong><span>{item.short}</span><ArrowRight /></a>)}</div></section>}</main>{footer}</>;
+  const share = async () => {
+    if (navigator.share) await navigator.share({ title: tool.title, text: tool.short, url: location.href });
+    else { await navigator.clipboard.writeText(location.href); setShared(true); }
+  };
+  return <>{header}<main className="extra-tool-page"><nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/#herramientas">Herramientas</a><span>/</span><span>{tool.title}</span></nav><header className={`extra-tool-hero ${tool.color}`}><div><span>{tool.category}</span><h1>{tool.title}</h1><p>{tool.short}</p></div><div className="extra-hero-actions"><button onClick={share}><Share2 />{shared ? "Copiado" : "Compartir"}</button><button onClick={() => window.print()}><Printer />Imprimir / PDF</button></div></header><div className="print-report-header"><strong>Útiles Online</strong><h1>{tool.title}</h1><p>Resultado generado en utilesonline.com</p></div><section className="extra-workspace">{children}</section><aside className="ad-space" aria-label="Publicidad"><span>Publicidad</span><div className="ad-placeholder">Espacio publicitario</div></aside><section className="extra-guide"><p className="guide-kicker">Guía de uso</p><h2>¿Para qué sirve {tool.title.toLowerCase()}?</h2><p>{seo.purpose}</p><h2>Cómo usarla paso a paso</h2><ol>{seo.steps.map(step => <li key={step}>{step}</li>)}</ol><h2>Consejos para obtener un resultado fiable</h2><ul>{seo.tips.map(tip => <li key={tip}>{tip}</li>)}</ul><h2>Preguntas frecuentes</h2><div className="tool-faq">{seo.faqs.map(faq => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</div><p className="method-note">Metodología: los resultados se calculan localmente a partir de los valores introducidos. Son orientativos y deben contrastarse con el reglamento de cada centro educativo.</p></section>{related.length > 0 && <section className="extra-related"><h2>Más herramientas de {tool.category.toLowerCase()}</h2><div>{related.map(item => <a href={`/${item.slug}`} key={item.slug}><strong>{item.title}</strong><span>{item.short}</span><ArrowRight /></a>)}</div></section>}</main>{footer}</>;
 }
 
 function Result({ label, value, detail }: { label: string; value: string; detail: string }) {
-  return <aside className="extra-result"><span>{label}</span><strong>{value}</strong><p><CheckCircle2 /> {detail}</p></aside>;
+  return <aside className="extra-result" aria-live="polite" aria-atomic="true"><span>{label}</span><strong>{value}</strong><p><CheckCircle2 /> {detail}</p></aside>;
 }
 
 function ExamGrade() {
   const [total, setTotal] = useState(50); const [correct, setCorrect] = useState(42); const [penalty, setPenalty] = useState(0); const [pass, setPass] = useState(70);
-  const score = total ? Math.max(0, (correct - (total - correct) * penalty) / total * 100) : 0;
+  const safeTotal = Math.max(1, total); const safeCorrect = Math.min(Math.max(0, correct), safeTotal);
+  const score = Math.max(0, (safeCorrect - (safeTotal - safeCorrect) * penalty) / safeTotal * 100);
   const letter = score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : score >= 60 ? "D" : "F";
-  return <><div className="extra-form"><label>Total de preguntas<input type="number" min="1" value={total} onChange={e => setTotal(number(e.target.value))} /></label><label>Respuestas correctas<input type="number" min="0" max={total} value={correct} onChange={e => setCorrect(number(e.target.value))} /></label><label>Penalización por error<select value={penalty} onChange={e => setPenalty(number(e.target.value))}><option value="0">Sin penalización</option><option value=".25">0.25 puntos</option><option value=".5">0.50 puntos</option><option value="1">1 punto</option></select></label><label>Nota mínima<input type="number" value={pass} onChange={e => setPass(number(e.target.value))} /></label></div><Result label="Calificación" value={`${score.toFixed(1)}% · ${letter}`} detail={score >= pass ? "Resultado aprobatorio." : "Resultado por debajo de la meta."} /></>;
+  return <><div className="extra-form"><label>Total de preguntas<input type="number" min="1" value={total} onChange={e => setTotal(number(e.target.value))} /></label><label>Respuestas correctas<input type="number" min="0" max={safeTotal} value={correct} onChange={e => setCorrect(number(e.target.value))} /></label><label>Penalización por error<select value={penalty} onChange={e => setPenalty(number(e.target.value))}><option value="0">Sin penalización</option><option value=".25">0.25 puntos</option><option value=".5">0.50 puntos</option><option value="1">1 punto</option></select></label><label>Nota mínima<input type="number" min="0" max="100" value={pass} onChange={e => setPass(number(e.target.value))} /></label>{correct > safeTotal && <p className="validation-note wide" role="alert">Las respuestas correctas no pueden superar el total. El cálculo usa {safeTotal} como máximo.</p>}</div><div><Result label="Calificación" value={`${score.toFixed(1)}% · ${letter}`} detail={score >= pass ? "Resultado aprobatorio." : "Resultado por debajo de la meta."} /><div className="calculation-breakdown"><strong>Fórmula aplicada</strong><code>({safeCorrect} − ({safeTotal - safeCorrect} × {penalty})) ÷ {safeTotal} × 100</code><span>Resultado sin redondear: {score.toFixed(4)}%</span></div></div></>;
 }
 
 function SemesterAverage({ cumulative = false }: { cumulative?: boolean }) {
