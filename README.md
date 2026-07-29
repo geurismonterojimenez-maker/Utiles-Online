@@ -1,20 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Útiles Online
 
-# Run and deploy your AI Studio app
+Plataforma de herramientas educativas gratuitas para estudiantes y docentes.
 
-This contains everything you need to run your app locally.
+## Herramientas
 
-View your app in AI Studio: https://ai.studio/apps/6dd39e89-0c01-40dd-94e4-8cb07e0b08e6
+- Calculadora de notas y promedio ponderado
+- Calculadora de nota necesaria para aprobar
+- Contador de palabras y caracteres
+- Generador de referencias APA 7
+- Temporizador Pomodoro
+- Creador de horarios escolares
 
-## Run Locally
+## Desarrollo
 
-**Prerequisites:**  Node.js
+```bash
+npm install
+npm run dev
+```
 
+## Producción
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+npm run lint
+npm run build
+npm start
+```
+
+El servidor Express genera metadatos, canonical y datos estructurados específicos
+para cada ruta y publica `robots.txt`, `sitemap.xml` y páginas 404 reales.

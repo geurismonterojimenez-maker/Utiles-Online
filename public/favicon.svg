@@ -1,8 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
-  <rect x="10" y="10" width="140" height="140" rx="34" fill="#005556"/>
-  <path d="M26 45H84V62H64V116H45V62H26V45Z" fill="#FFFFFF"/>
-  <path d="M82 45H100L121 85V45H139V116H121L100 76V116H82V45Z" fill="#FFFFFF"/>
-  <path d="M36 118C62 106 91 85 122 42" stroke="#C5932D" stroke-width="12" stroke-linecap="round"/>
-  <path d="M122 42H101M122 42V63" stroke="#C5932D" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M10 44C10 25.2223 25.2223 10 44 10H116C134.778 10 150 25.2223 150 44V116C150 134.778 134.778 150 116 150H44C25.2223 150 10 134.778 10 116V44Z" stroke="#0E8D82" stroke-width="6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6d4aff"/><stop offset="1" stop-color="#b570ff"/></linearGradient></defs>
+  <rect width="64" height="64" rx="18" fill="url(#g)"/>
+  <path d="M20 18h21a5 5 0 0 1 5 5v25H25a5 5 0 0 1-5-5V18Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M25 18v30M31 27h9M31 34h9" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
 </svg>

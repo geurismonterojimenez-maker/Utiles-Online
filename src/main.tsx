@@ -8,17 +8,3 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
-
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  const registerServiceWorker = () => {
-    navigator.serviceWorker.register('/sw.js').catch((error) => {
-      console.warn('Service worker registration failed:', error);
-    });
-  };
-
-  if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(registerServiceWorker, { timeout: 3000 });
-  } else {
-    globalThis.setTimeout(registerServiceWorker, 1800);
-  }
-}
