@@ -10,11 +10,31 @@ const pages: Record<string, { title: string; description: string; type?: string 
   "/": { title: "Útiles Online | Herramientas gratuitas para estudiar mejor", description: "Calculadoras académicas, herramientas de escritura y recursos gratuitos para estudiantes y docentes." },
   "/calculadora-de-notas": { title: "Calculadora de notas y promedio ponderado | Útiles Online", description: "Calcula gratis tu promedio simple o ponderado y descubre si estás aprobando.", type: "SoftwareApplication" },
   "/nota-necesaria-para-aprobar": { title: "Calculadora de nota necesaria para aprobar | Útiles Online", description: "Descubre qué calificación necesitas en el examen final para alcanzar el promedio deseado.", type: "SoftwareApplication" },
+  "/calculadora-gpa": { title: "Calculadora de GPA universitario gratis | Útiles Online", description: "Calcula tu GPA en escala 4.0 según las calificaciones y créditos de cada materia.", type: "SoftwareApplication" },
+  "/conversor-de-calificaciones": { title: "Conversor de calificaciones y escalas | Útiles Online", description: "Convierte notas proporcionalmente entre escalas de 5, 10, 20 y 100 puntos.", type: "SoftwareApplication" },
+  "/calculadora-de-asistencia": { title: "Calculadora de asistencia escolar | Útiles Online", description: "Calcula tu porcentaje de asistencia y comprueba si cumples el mínimo requerido.", type: "SoftwareApplication" },
   "/contador-de-palabras": { title: "Contador de palabras y caracteres gratis | Útiles Online", description: "Cuenta palabras, caracteres, oraciones y tiempo de lectura sin enviar ni guardar tu texto.", type: "SoftwareApplication" },
   "/generador-apa": { title: "Generador de referencias APA 7 gratis | Útiles Online", description: "Crea referencias APA 7 para libros y páginas web de forma rápida y gratuita.", type: "SoftwareApplication" },
+  "/generador-de-portadas": { title: "Generador de portadas académicas | Útiles Online", description: "Crea una portada académica clara y guárdala como PDF para tu trabajo.", type: "SoftwareApplication" },
+  "/limpiador-de-texto": { title: "Limpiador de texto online gratis | Útiles Online", description: "Elimina espacios duplicados y corrige el formato básico de un texto en tu navegador.", type: "SoftwareApplication" },
   "/temporizador-pomodoro": { title: "Temporizador Pomodoro online para estudiar | Útiles Online", description: "Temporizador Pomodoro gratuito con sesiones de concentración y descansos.", type: "SoftwareApplication" },
   "/creador-de-horarios": { title: "Creador de horarios escolares gratis | Útiles Online", description: "Organiza clases y actividades en un horario semanal que puedes imprimir o guardar como PDF.", type: "SoftwareApplication" },
+  "/calculadora-cientifica": { title: "Calculadora científica online gratis | Útiles Online", description: "Calcula potencias, raíces, logaritmos y funciones trigonométricas.", type: "SoftwareApplication" },
+  "/conversor-de-unidades": { title: "Conversor de unidades online | Útiles Online", description: "Convierte longitud, masa y tiempo con factores estándar.", type: "SoftwareApplication" },
+  "/planificador-de-tareas": { title: "Planificador de tareas y exámenes | Útiles Online", description: "Organiza tareas, entregas y exámenes por prioridad y fecha en tu navegador.", type: "SoftwareApplication" },
+  "/calculadoras-academicas": { title: "Calculadoras académicas gratuitas | Útiles Online", description: "Calculadoras de notas, GPA, asistencia y escalas para estudiantes." },
+  "/herramientas-de-escritura": { title: "Herramientas de escritura académica | Útiles Online", description: "Recursos gratuitos para contar, limpiar, citar y presentar textos académicos." },
+  "/organizacion-y-estudio": { title: "Organización y técnicas de estudio | Útiles Online", description: "Horarios, tareas y técnica Pomodoro para organizar mejor el estudio." },
+  "/recursos-para-docentes": { title: "Recursos gratuitos para docentes | Útiles Online", description: "Herramientas educativas listas para compartir y usar en clase." },
+  "/guias": { title: "Guías prácticas para estudiantes | Útiles Online", description: "Explicaciones sobre notas, APA, horarios y técnicas de estudio." },
+  "/guias/como-calcular-promedio-final": { title: "Cómo calcular el promedio final paso a paso | Útiles Online", description: "Aprende a calcular promedios simples y ponderados con fórmula y ejemplo." },
+  "/guias/nota-necesaria-para-aprobar": { title: "Cómo calcular la nota necesaria para aprobar | Útiles Online", description: "Fórmula y calculadora para saber qué nota necesitas en la evaluación restante." },
+  "/guias/como-citar-pagina-web-apa-7": { title: "Cómo citar una página web en APA 7 | Útiles Online", description: "Guía para crear una referencia web APA 7 con o sin autor y fecha." },
+  "/guias/promedio-simple-vs-ponderado": { title: "Promedio simple vs. ponderado | Útiles Online", description: "Diferencias, fórmula y cuándo usar cada tipo de promedio." },
+  "/guias/tecnica-pomodoro": { title: "Técnica Pomodoro para estudiar mejor | Útiles Online", description: "Cómo organizar ciclos de concentración y pausas con Pomodoro." },
+  "/guias/organizar-horario-universitario": { title: "Cómo organizar un horario universitario | Útiles Online", description: "Pasos para combinar clases, estudio, entregas y descanso." },
   "/acerca-de": { title: "Acerca de Útiles Online", description: "Conoce el propósito y los principios de Útiles Online." },
+  "/metodologia": { title: "Metodología editorial y de cálculo | Útiles Online", description: "Cómo revisamos las fórmulas, guías y herramientas de Útiles Online." },
   "/privacidad": { title: "Política de privacidad | Útiles Online", description: "Información sobre privacidad y tratamiento de datos en Útiles Online." },
   "/contacto": { title: "Contacto | Útiles Online", description: "Formas de contactar con el equipo de Útiles Online." }
 };
@@ -32,7 +52,9 @@ app.use(express.static(distPath, { index: false, maxAge: "7d" }));
 function render(pathname: string) {
   const meta = pages[pathname]; if (!meta) return null;
   const canonical = `${ORIGIN}${pathname}`;
+  const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
   const schema = meta.type ? { "@context": "https://schema.org", "@type": meta.type, name: meta.title.split(" | ")[0], description: meta.description, url: canonical, applicationCategory: "EducationalApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } } : { "@context": "https://schema.org", "@type": "WebPage", name: meta.title, description: meta.description, url: canonical, inLanguage: "es" };
+  const fallback = `<main data-server-fallback><nav><a href="/">Útiles Online</a> · <a href="/calculadoras-academicas">Calculadoras</a> · <a href="/guias">Guías</a></nav><h1>${escapeHtml(meta.title.split(" | ")[0])}</h1><p>${escapeHtml(meta.description)}</p><p><a href="/#herramientas">Explorar herramientas educativas gratuitas</a></p></main>`;
   return fs.readFileSync(path.join(distPath, "index.html"), "utf8")
     .replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`)
     .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${meta.description}" />`)
@@ -40,6 +62,7 @@ function render(pathname: string) {
     .replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${meta.title}" />`)
     .replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${meta.description}" />`)
     .replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${canonical}" />`)
+    .replace('<div id="root"></div>', `<div id="root">${fallback}</div>`)
     .replace("</head>", `<script type="application/ld+json">${JSON.stringify(schema)}</script></head>`);
 }
 app.get("*", (req, res) => {
