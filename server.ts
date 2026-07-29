@@ -3,6 +3,7 @@ import compression from "compression";
 import path from "node:path";
 import fs from "node:fs";
 import { CONTENT } from "./src/content";
+import { EXTRA_TOOL_CATALOG } from "./src/studyTools";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -43,6 +44,9 @@ const pages: Record<string, { title: string; description: string; type?: string;
 for (const [slug, page] of Object.entries(CONTENT)) {
   pages[`/${slug}`] = { title: `${page.title} | Útiles Online`, description: page.intro, type: slug.startsWith("guias/") ? "Article" : undefined };
 }
+for (const tool of EXTRA_TOOL_CATALOG) {
+  pages[`/${tool.slug}`] = { title: `${tool.title} gratis | Útiles Online`, description: tool.short, type: "SoftwareApplication" };
+}
 app.disable("x-powered-by");
 app.use((req, res, next) => req.hostname.toLowerCase() === "www.utilesonline.com" ? res.redirect(301, `${ORIGIN}${req.originalUrl}`) : next());
 app.use(compression());
@@ -59,6 +63,7 @@ function render(pathname: string) {
   const canonical = `${ORIGIN}${pathname}`;
   const escapeHtml = (value: string) => value.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
   const content = CONTENT[pathname.replace(/^\//, "")];
+  const extraTool = EXTRA_TOOL_CATALOG.find(tool => `/${tool.slug}` === pathname);
   const mainSchema = meta.type === "SoftwareApplication"
     ? { "@type": "SoftwareApplication", name: meta.title.split(" | ")[0], description: meta.description, url: canonical, applicationCategory: "EducationalApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } }
     : meta.type === "Article"
@@ -66,7 +71,8 @@ function render(pathname: string) {
       : { "@type": "WebPage", name: meta.title, description: meta.description, url: canonical, inLanguage: "es" };
   const schema = { "@context": "https://schema.org", "@graph": [mainSchema, { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Inicio", item: ORIGIN }, { "@type": "ListItem", position: 2, name: meta.title.split(" | ")[0], item: canonical }] }] };
   const sections = content?.sections.map(section => `<section><h2>${escapeHtml(section.heading)}</h2><p>${escapeHtml(section.text)}</p></section>`).join("") || `<section><h2>Cómo utilizar este recurso</h2><p>Introduce tus datos en la herramienta, revisa el resultado y consulta la explicación del método antes de tomar una decisión académica.</p></section>`;
-  const related = content?.tools?.map(slug => `<li><a href="/${escapeHtml(slug)}">${escapeHtml(pages[`/${slug}`]?.title.split(" | ")[0] || slug)}</a></li>`).join("") || "";
+  const relatedSlugs = content?.tools || (extraTool ? EXTRA_TOOL_CATALOG.filter(tool => tool.slug !== extraTool.slug && tool.category === extraTool.category).slice(0, 4).map(tool => tool.slug) : []);
+  const related = relatedSlugs.map(slug => `<li><a href="/${escapeHtml(slug)}">${escapeHtml(pages[`/${slug}`]?.title.split(" | ")[0] || slug)}</a></li>`).join("");
   const fallback = `<main data-server-fallback><nav><a href="/">Útiles Online</a> · <a href="/calculadoras-academicas">Calculadoras</a> · <a href="/guias">Guías</a></nav><article><h1>${escapeHtml(meta.title.split(" | ")[0])}</h1><p>${escapeHtml(meta.description)}</p>${sections}${related ? `<h2>Herramientas relacionadas</h2><ul>${related}</ul>` : ""}</article><p><a href="/#herramientas">Explorar herramientas educativas gratuitas</a></p></main>`;
   return fs.readFileSync(path.join(distPath, "index.html"), "utf8")
     .replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`)

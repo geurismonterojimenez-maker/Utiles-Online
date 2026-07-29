@@ -5,6 +5,7 @@ import {
   Settings2, Share2, Sparkles, Sun, Trash2, Type, X
 } from "lucide-react";
 import { CONTENT, GUIDE_SLUGS } from "./content";
+import { EXTRA_TOOL_CATALOG, StudyToolPage } from "./studyTools";
 
 type Tool = {
   slug: string;
@@ -31,6 +32,10 @@ const TOOLS: Tool[] = [
   { slug: "conversor-de-unidades", title: "Conversor de unidades", short: "Convierte longitud, masa, temperatura y tiempo.", category: "Matemáticas", icon: ArrowRight, color: "cyan" },
   { slug: "planificador-de-tareas", title: "Planificador de tareas", short: "Organiza entregas y exámenes por prioridad y fecha.", category: "Organización", icon: CalendarDays, color: "pink" },
 ];
+TOOLS.push(...EXTRA_TOOL_CATALOG.map(tool => ({
+  ...tool,
+  icon: tool.category === "Escritura" ? FileText : tool.category === "Organización" ? CalendarDays : tool.category === "Estudio" ? BookOpen : tool.category === "Docentes" ? GraduationCap : Calculator
+})));
 
 const pathSlug = () => window.location.pathname.replace(/^\/|\/$/g, "");
 const track = (event: string, details: Record<string, unknown> = {}) => {
@@ -105,6 +110,7 @@ function Header() {
         <a href="/#herramientas">Herramientas</a>
         <a href="/calculadoras-academicas">Calculadoras</a>
         <a href="/organizacion-y-estudio">Organización</a>
+        <a href="/panel-academico">Centro de estudio</a>
         <a href="/guias">Guías</a>
       </nav>
       <div className="header-actions">
@@ -151,7 +157,7 @@ function Footer() {
     <footer>
       <div><a className="brand footer-brand" href="/"><span className="brand-mark"><Sparkles size={18} /></span><span>Útiles <strong>Online</strong></span></a>
         <p>Herramientas gratuitas y claras para estudiar, enseñar y organizarse mejor.</p></div>
-      <div><strong>Recursos</strong><a href="/calculadoras-academicas">Calculadoras académicas</a><a href="/herramientas-de-escritura">Escritura</a><a href="/organizacion-y-estudio">Organización</a><a href="/guias">Guías</a></div>
+      <div><strong>Recursos</strong><a href="/calculadoras-academicas">Calculadoras académicas</a><a href="/panel-academico">Centro de estudio</a><a href="/recursos-para-docentes">Para docentes</a><a href="/guias">Guías</a></div>
       <div><strong>Información</strong><a href="/acerca-de">Acerca de</a><a href="/metodologia">Metodología</a><a href="/privacidad">Privacidad</a><a href="/contacto">Contacto</a></div>
       <small>© {new Date().getFullYear()} Útiles Online. Recursos educativos gratuitos.</small>
     </footer>
@@ -174,9 +180,11 @@ function Home() {
   useMetadata();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todas");
+  const [toolLimit, setToolLimit] = useState(18);
   const [favorites, setFavorites] = useState<string[]>(() => JSON.parse(localStorage.getItem("uo-favorites") || "[]"));
   const categories = ["Todas", ...Array.from(new Set(TOOLS.map(t => t.category)))];
   const visible = TOOLS.filter(t => (category === "Todas" || t.category === category) && `${t.title} ${t.short}`.toLowerCase().includes(query.toLowerCase()));
+  const shownTools = query || category !== "Todas" ? visible : visible.slice(0, toolLimit);
   const toggleFavorite = (slug: string) => {
     const next = favorites.includes(slug) ? favorites.filter(s => s !== slug) : [...favorites, slug];
     setFavorites(next); localStorage.setItem("uo-favorites", JSON.stringify(next));
@@ -201,7 +209,8 @@ function Home() {
     <section className="tools-section" id="herramientas">
       <div className="section-heading"><div><span className="eyebrow">Herramientas destacadas</span><h2>Todo lo que necesitas, en un solo lugar</h2></div><p>Recursos prácticos que resuelven tareas reales en segundos.</p></div>
       <div className="tool-finder"><label><Search size={19} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar calculadora, escritura, horarios…" /></label><div>{categories.map(c => <button className={category === c ? "active" : ""} onClick={() => setCategory(c)} key={c}>{c}</button>)}</div></div>
-      <div className="tool-grid">{visible.map(t => <div className="tool-card-wrap" key={t.slug}><button className={`favorite ${favorites.includes(t.slug) ? "active" : ""}`} onClick={() => toggleFavorite(t.slug)} aria-label={favorites.includes(t.slug) ? `Quitar ${t.title} de favoritos` : `Guardar ${t.title} en favoritos`}><Heart size={18} /></button><ToolCard tool={t} /></div>)}</div>
+      <div className="tool-grid">{shownTools.map(t => <div className="tool-card-wrap" key={t.slug}><button className={`favorite ${favorites.includes(t.slug) ? "active" : ""}`} onClick={() => toggleFavorite(t.slug)} aria-label={favorites.includes(t.slug) ? `Quitar ${t.title} de favoritos` : `Guardar ${t.title} en favoritos`}><Heart size={18} /></button><ToolCard tool={t} /></div>)}</div>
+      {!query && category === "Todas" && toolLimit < visible.length && <button className="load-more-tools" onClick={() => setToolLimit(toolLimit + 18)}>Mostrar más herramientas ({visible.length - toolLimit})</button>}
       {!visible.length && <div className="empty-state"><Search /><h3>No encontramos esa herramienta</h3><p>Prueba con “notas”, “texto”, “horario” o selecciona otra categoría.</p></div>}
     </section>
     <section className="audience" id="para-estudiantes">
@@ -509,6 +518,7 @@ export default function App() {
   if (slug === "calculadora-cientifica") return <ScientificCalculator />;
   if (slug === "conversor-de-unidades") return <UnitConverter />;
   if (slug === "planificador-de-tareas") return <TaskPlanner />;
+  if (EXTRA_TOOL_CATALOG.some(tool => tool.slug === slug)) return <StudyToolPage slug={slug} header={<Header />} footer={<Footer />} />;
   if (CONTENT[slug]) return <ContentPage slug={slug} />;
   if (slug === "panel-seo") return <SeoDashboard />;
   if (["acerca-de", "privacidad", "contacto", "metodologia"].includes(slug)) return <InfoPage slug={slug} />;
