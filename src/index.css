@@ -32,6 +32,7 @@
 @media print{@page{size:auto;margin:14mm}.extra-tool-page .mini-history{display:none!important}.worksheet small.show-answer{display:block!important}.worksheet>header{display:flex!important}}
 @media print{
   html,body,#root{background:#fff!important;color:#111!important}
+  html,body,#root,main,.tool-page,.extra-tool-page,.workspace,.extra-workspace{width:100%!important;max-width:none!important;min-width:0!important;overflow:visible!important}
   body[data-print-mode] .form-card,
   body[data-print-mode] .calculator-card,
   body[data-print-mode] .calculator-options,
@@ -78,4 +79,18 @@
   body[data-print-mode=document] .task-list,
   body[data-print-mode=document] .cornell,
   body[data-print-mode=document] .template-outline{background:#fff!important;color:#111!important;box-shadow:none!important;border-color:#777!important}
+  body[data-print-mode=document] .schedule-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important;gap:6px!important;padding:0!important;border:0!important}
+  body[data-print-mode=document] .schedule-grid.weekend{grid-template-columns:repeat(7,minmax(0,1fr))!important}
+  body[data-print-mode=document] .schedule-grid>div{min-width:0!important;width:auto!important;padding:7px!important;overflow-wrap:anywhere!important}
+  body[data-print-mode=document] .schedule-grid>div>strong{font-size:11px!important}
+  body[data-print-mode=document] .schedule-grid article{padding:7px 4px!important;margin:5px 0!important;min-width:0!important;overflow:hidden!important}
+  body[data-print-mode=document] .schedule-grid time{font-size:8px!important}
+  body[data-print-mode=document] .schedule-grid article span{font-size:10px!important;line-height:1.15!important;overflow-wrap:anywhere!important}
+  body[data-print-mode=document] .rubric-table{overflow:visible!important;width:100%!important;max-width:100%!important}
+  body[data-print-mode=document] .rubric-table>div{min-width:0!important;width:100%!important;grid-template-columns:1.4fr 1fr 1fr 1fr .55fr!important}
+  body[data-print-mode=document] .worksheet,
+  body[data-print-mode=document] .template-outline,
+  body[data-print-mode=document] .cornell,
+  body[data-print-mode=document] .task-list{width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important}
+  body[data-print-mode] ::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
 }
