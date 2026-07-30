@@ -56,9 +56,10 @@
   body[data-print-mode] .text-tools>div,
   body[data-print-mode] button{display:none!important}
   body[data-print-mode=result] .print-text-output{display:block!important;min-height:220px;border:1px solid #999!important;background:#fff!important;color:#111!important}
-  body[data-print-mode=result] .text-comparison textarea:first-child{display:none!important}
-  body[data-print-mode=result] .text-comparison{display:block!important}
-  body[data-print-mode=result] .text-comparison textarea{min-height:180px;border:1px solid #bbb!important;background:#fff!important}
+  body[data-print-mode=result] .text-comparison{display:none!important}
+  body[data-print-mode=result] .text-comparison.print-second-text{display:block!important;width:100%!important}
+  body[data-print-mode=result] .text-comparison.print-second-text textarea:first-child{display:none!important}
+  body[data-print-mode=result] .text-comparison.print-second-text textarea:last-child{display:block!important;width:100%!important;max-width:100%!important;min-height:180px;border:1px solid #bbb!important;background:#fff!important}
   body[data-print-mode=result] .extra-result,
   body[data-print-mode=result] .result-card{background:#fff!important;color:#111!important;border:2px solid #222!important;box-shadow:none!important;padding:18px!important}
   body[data-print-mode=result] .extra-result>strong,
@@ -79,6 +80,10 @@
   body[data-print-mode=document] .task-list,
   body[data-print-mode=document] .cornell,
   body[data-print-mode=document] .template-outline{background:#fff!important;color:#111!important;box-shadow:none!important;border-color:#777!important}
+  body[data-print-tool="generador-de-portadas"] .print-report-header{display:none!important}
+  body[data-print-tool="generador-de-portadas"] .cover-preview{width:100%!important;min-height:0!important;height:250mm!important;max-height:250mm!important;margin:0!important;border:0!important;break-inside:avoid!important}
+  body[data-print-tool="plantillas-trabajos-academicos"] .template-outline{break-inside:auto!important}
+  body[data-print-tool="plantillas-trabajos-academicos"] .template-outline label{break-inside:avoid!important}
   body[data-print-mode=document] .schedule-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow:visible!important;gap:6px!important;padding:0!important;border:0!important}
   body[data-print-mode=document] .schedule-grid.weekend{grid-template-columns:repeat(7,minmax(0,1fr))!important}
   body[data-print-mode=document] .schedule-grid>div{min-width:0!important;width:auto!important;padding:7px!important;overflow-wrap:anywhere!important}

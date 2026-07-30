@@ -119,6 +119,7 @@ function Shell({ slug, header, footer, children }: { slug: string; header: React
   const [shared, setShared] = useState(false);
   useEffect(() => {
     document.body.dataset.printMode = printableDocument ? "document" : "result";
+    document.body.dataset.printTool = slug;
     document.title = `${tool.title} gratis | Útiles Online`;
     document.querySelector('meta[name="description"]')?.setAttribute("content", tool.short);
     document.querySelector('link[rel="canonical"]')?.setAttribute("href", `https://utilesonline.com/${slug}`);
@@ -126,7 +127,10 @@ function Shell({ slug, header, footer, children }: { slug: string; header: React
     win.dataLayer = win.dataLayer || []; win.dataLayer.push({ event: "view_tool", tool: slug, category: tool.category });
     const recent = JSON.parse(localStorage.getItem("uo-recent-tools") || "[]") as string[];
     localStorage.setItem("uo-recent-tools", JSON.stringify([slug, ...recent.filter(item => item !== slug)].slice(0, 8)));
-    return () => { delete document.body.dataset.printMode; };
+    return () => {
+      delete document.body.dataset.printMode;
+      delete document.body.dataset.printTool;
+    };
   }, [slug, tool, printableDocument]);
   const share = async () => {
     if (navigator.share) await navigator.share({ title: tool.title, text: tool.short, url: location.href });
@@ -253,11 +257,11 @@ function PermanentDemandTool({ slug }: { slug: string }) {
   if (slug === "generador-tablas-multiplicar") return <><div className="extra-form compact"><label>Tabla del<input type="number" min="1" max="100" value={a} onChange={e => setA(number(e.target.value))} /></label><label>Hasta<input type="number" min="5" max="30" value={c} onChange={e => setC(number(e.target.value))} /></label></div><div className="worksheet">{Array.from({ length: Math.max(1, c) }, (_, i) => <div key={i}><strong>{a} × {i + 1} = _____</strong><small>Respuesta: {a * (i + 1)}</small></div>)}</div></>;
   if (slug === "corrector-texto-basico") {
     const corrected = text.replace(/[ \t]+/g, " ").replace(/\s+([,.;!?])/g, "$1").replace(/([.!?])([A-Za-zÁÉÍÓÚÑáéíóúñ])/g, "$1 $2").trim(); const issues = Math.max(0, text.length - corrected.length);
-    return <><div className="text-comparison"><textarea value={text} onChange={e => setText(e.target.value)} placeholder="Pega el texto original…" /><textarea value={corrected} readOnly aria-label="Texto corregido" /></div><Result label="Revisión básica" value={`${issues} ajustes`} detail="Se corrigieron espacios y separación de signos; revisa ortografía y contexto manualmente." /></>;
+    return <><div className="text-comparison print-second-text"><textarea value={text} onChange={e => setText(e.target.value)} placeholder="Pega el texto original…" /><textarea value={corrected} readOnly aria-label="Texto corregido" /></div><Result label="Revisión básica" value={`${issues} ajustes`} detail="Se corrigieron espacios y separación de signos; revisa ortografía y contexto manualmente." /></>;
   }
   if (slug === "resumidor-texto-extractivo") {
     const sentences = text.match(/[^.!?]+[.!?]+/g) || []; const keywords = text.toLowerCase().split(/\W+/).filter(word => word.length > 5); const summary = sentences.map(sentence => ({ sentence, score: keywords.filter(word => sentence.toLowerCase().includes(word)).length })).sort((x, y) => y.score - x.score).slice(0, Math.max(1, Math.ceil(sentences.length * .3))).map(item => item.sentence.trim()).join(" ");
-    return <><div className="text-comparison"><textarea value={text} onChange={e => setText(e.target.value)} placeholder="Pega un texto de varias oraciones…" /><textarea value={summary} readOnly aria-label="Resumen extraído" /></div><p className="method-note">Este resumen selecciona oraciones del texto original; no inventa ni reescribe información.</p></>;
+    return <><div className="text-comparison print-second-text"><textarea value={text} onChange={e => setText(e.target.value)} placeholder="Pega un texto de varias oraciones…" /><textarea value={summary} readOnly aria-label="Resumen extraído" /></div><p className="method-note">Este resumen selecciona oraciones del texto original; no inventa ni reescribe información.</p></>;
   }
   if (slug === "generador-citas-mla-chicago") {
     const parts = text.split("|").map(item => item.trim()); const [author = "Apellido, Nombre", title = "Título", source = "Sitio o editorial", year = "s. f.", url = ""] = parts; const citation = style === "MLA" ? `${author}. “${title}”. ${source}, ${year}, ${url}.` : `${author}. “${title}”. ${source}. ${year}. ${url}.`;

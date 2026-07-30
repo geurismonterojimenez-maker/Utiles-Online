@@ -231,8 +231,12 @@ function ToolShell({ tool, children, guide }: { tool: Tool; children: React.Reac
   const Icon = tool.icon;
   useEffect(() => {
     document.body.dataset.printMode = ["generador-de-portadas", "creador-de-horarios", "planificador-de-tareas"].includes(tool.slug) ? "document" : "result";
+    document.body.dataset.printTool = tool.slug;
     track("view_tool", { tool: tool.slug, category: tool.category });
-    return () => { delete document.body.dataset.printMode; };
+    return () => {
+      delete document.body.dataset.printMode;
+      delete document.body.dataset.printTool;
+    };
   }, [tool]);
   return <><Header /><main className="tool-page">
     <nav className="breadcrumbs"><a href="/">Inicio</a><span>/</span><a href="/#herramientas">Herramientas</a><span>/</span><span>{tool.title}</span></nav>
