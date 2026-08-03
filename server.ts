@@ -10,7 +10,7 @@ const PORT = Number(process.env.PORT) || 3000;
 const ORIGIN = "https://utilesonline.com";
 const pages: Record<string, { title: string; description: string; type?: string; noindex?: boolean }> = {
   "/": { title: "Útiles Online | Herramientas gratuitas para estudiar mejor", description: "Calculadoras académicas, herramientas de escritura y recursos gratuitos para estudiantes y docentes." },
-  "/calculadora-de-notas": { title: "Calculadora de notas y promedio ponderado | Útiles Online", description: "Calcula gratis tu promedio simple o ponderado y descubre si estás aprobando.", type: "SoftwareApplication" },
+  "/calculadora-de-notas": { title: "Calculadora de notas: promedio simple y ponderado", description: "Calcula gratis tu promedio de notas simple o ponderado, aplica porcentajes y descubre qué calificación necesitas para aprobar.", type: "SoftwareApplication" },
   "/nota-necesaria-para-aprobar": { title: "Calculadora de nota necesaria para aprobar | Útiles Online", description: "Descubre qué calificación necesitas en el examen final para alcanzar el promedio deseado.", type: "SoftwareApplication" },
   "/calculadora-gpa": { title: "Calculadora de GPA universitario gratis | Útiles Online", description: "Calcula tu GPA en escala 4.0 según las calificaciones y créditos de cada materia.", type: "SoftwareApplication" },
   "/conversor-de-calificaciones": { title: "Conversor de calificaciones y escalas | Útiles Online", description: "Convierte notas proporcionalmente entre escalas de 5, 10, 20 y 100 puntos.", type: "SoftwareApplication" },
@@ -20,7 +20,7 @@ const pages: Record<string, { title: string; description: string; type?: string;
   "/generador-de-portadas": { title: "Generador de portadas académicas | Útiles Online", description: "Crea una portada académica clara y guárdala como PDF para tu trabajo.", type: "SoftwareApplication" },
   "/limpiador-de-texto": { title: "Limpiador de texto online gratis | Útiles Online", description: "Elimina espacios duplicados y corrige el formato básico de un texto en tu navegador.", type: "SoftwareApplication" },
   "/temporizador-pomodoro": { title: "Temporizador Pomodoro online para estudiar | Útiles Online", description: "Temporizador Pomodoro gratuito con sesiones de concentración y descansos.", type: "SoftwareApplication" },
-  "/creador-de-horarios": { title: "Creador de horarios escolares gratis | Útiles Online", description: "Organiza clases y actividades en un horario semanal que puedes imprimir o guardar como PDF.", type: "SoftwareApplication" },
+  "/creador-de-horarios": { title: "Creador de horarios escolares para imprimir gratis", description: "Crea un horario semanal de clases y estudio, organiza materias por día y descarga una impresión limpia sin barras ni controles.", type: "SoftwareApplication" },
   "/calculadora-cientifica": { title: "Calculadora científica online gratis | Útiles Online", description: "Calcula potencias, raíces, logaritmos y funciones trigonométricas.", type: "SoftwareApplication" },
   "/conversor-de-unidades": { title: "Conversor de unidades online | Útiles Online", description: "Convierte longitud, masa y tiempo con factores estándar.", type: "SoftwareApplication" },
   "/planificador-de-tareas": { title: "Planificador de tareas y exámenes | Útiles Online", description: "Organiza tareas, entregas y exámenes por prioridad y fecha en tu navegador.", type: "SoftwareApplication" },
