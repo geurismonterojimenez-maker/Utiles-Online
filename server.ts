@@ -9,7 +9,7 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 const ORIGIN = "https://utilesonline.com";
 const pages: Record<string, { title: string; description: string; type?: string; noindex?: boolean }> = {
-  "/": { title: "Útiles Online | Herramientas gratuitas para estudiar mejor", description: "Calculadoras académicas, herramientas de escritura y recursos gratuitos para estudiantes y docentes." },
+  "/": { title: "Herramientas para estudiantes gratis | Útiles Online", description: "Calcula notas y GPA, crea horarios, referencias APA y portadas, cuenta palabras y organiza tus estudios con herramientas gratuitas y sin registro." },
   "/calculadora-de-notas": { title: "Calculadora de notas: promedio simple y ponderado", description: "Calcula gratis tu promedio de notas simple o ponderado, aplica porcentajes y descubre qué calificación necesitas para aprobar.", type: "SoftwareApplication" },
   "/nota-necesaria-para-aprobar": { title: "Calculadora de nota necesaria para aprobar | Útiles Online", description: "Descubre qué calificación necesitas en el examen final para alcanzar el promedio deseado.", type: "SoftwareApplication" },
   "/calculadora-gpa": { title: "Calculadora de GPA universitario gratis | Útiles Online", description: "Calcula tu GPA en escala 4.0 según las calificaciones y créditos de cada materia.", type: "SoftwareApplication" },
@@ -71,7 +71,7 @@ function render(pathname: string) {
   const mainSchema = meta.type === "SoftwareApplication"
     ? { "@type": "SoftwareApplication", name: meta.title.split(" | ")[0], description: meta.description, url: canonical, applicationCategory: "EducationalApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } }
     : meta.type === "Article"
-      ? { "@type": "Article", headline: meta.title.split(" | ")[0], description: meta.description, url: canonical, dateModified: "2026-07-28", inLanguage: "es" }
+      ? { "@type": "Article", headline: meta.title.split(" | ")[0], description: meta.description, url: canonical, dateModified: "2026-08-11", inLanguage: "es" }
       : { "@type": "WebPage", name: meta.title, description: meta.description, url: canonical, inLanguage: "es" };
   const graph: Record<string, unknown>[] = [mainSchema, { "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Inicio", item: ORIGIN }, { "@type": "ListItem", position: 2, name: meta.title.split(" | ")[0], item: canonical }] }];
   if (extraSeo) {
