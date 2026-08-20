@@ -49,6 +49,20 @@ for (const tool of EXTRA_TOOL_CATALOG) {
 }
 app.disable("x-powered-by");
 app.use((req, res, next) => req.hostname.toLowerCase() === "www.utilesonline.com" ? res.redirect(301, `${ORIGIN}${req.originalUrl}`) : next());
+const legacyRedirects: Record<string, string> = {
+  "/sobre-nosotros": "/acerca-de",
+  "/word-a-pdf": "/herramientas-de-escritura",
+  "/contador-palabras": "/contador-de-palabras",
+  "/politica-privacidad": "/privacidad",
+  "/temporizador-online": "/temporizador-pomodoro",
+  "/calculadora-iva": "/calculadoras-academicas",
+  "/categorias/calculadoras": "/calculadoras-academicas"
+};
+app.use((req, res, next) => {
+  const normalizedPath = req.path.replace(/\/+$/, "") || "/";
+  const destination = legacyRedirects[normalizedPath];
+  return destination ? res.redirect(301, `${ORIGIN}${destination}`) : next();
+});
 app.use(compression());
 app.use((_req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "SAMEORIGIN"); res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); next(); });
 app.get("/robots.txt", (_req, res) => res.type("text/plain").send(`User-agent: *\nAllow: /\nSitemap: ${ORIGIN}/sitemap.xml\n`));
